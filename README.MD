@@ -7,8 +7,8 @@
 ### Example
 
 ```ts
-const * as orm from "https://deno.land/x/dso/mod.ts";
-// const * as orm from "https://raw.githubusercontent.com/manyuanrong/dso/master/mod.ts";
+const * as orm, { FieldTypes } from "https://deno.land/x/dso/mod.ts";
+// const * as orm, { FieldTypes } from "https://raw.githubusercontent.com/manyuanrong/dso/master/mod.ts";
 
 // Define a database model
 const User = orm.define("users", {
@@ -89,7 +89,7 @@ await orm.sync(force);
 
 #### replaceParams
 Use parameters to automatically replace placeholders in SQL statements. export from `deno_mysql`
-```
+```ts
 console.log(orm.replaceParams("select ?? from ?? where id = ?", [["id","name"], "users", 1]));
 // select (`id`,`name`) from `users` where id = 1
 ```
@@ -107,7 +107,7 @@ console.log(orm.replaceParams("select ?? from ?? where id = ?", [["id","name"], 
 Field type describes the following properties of a field
 
 | key | type | default value | desc |
-| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- |
 | type | one of the [FieldTypes](#fieldtypes) | null | types of database fields |
 | length | number | unfixed | field length |
 | primary | boolean | false | database primary key? |
