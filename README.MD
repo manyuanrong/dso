@@ -7,8 +7,8 @@
 ### Example
 
 ```ts
-const * as orm, { FieldTypes } from "https://deno.land/x/dso/mod.ts";
-// const * as orm, { FieldTypes } from "https://raw.githubusercontent.com/manyuanrong/dso/master/mod.ts";
+// const * as orm, { FieldTypes } from "https://deno.land/x/dso/mod.ts";
+const * as orm, { FieldTypes } from "https://raw.githubusercontent.com/manyuanrong/dso/master/mod.ts";
 
 // Define a database model
 const User = orm.define("users", {
