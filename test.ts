@@ -7,7 +7,8 @@ const User = define("users", {
   id: { autoIncrement: true, length: 11, type: FieldTypes.INT, primary: true },
   name: { length: 30, type: FieldTypes.STRING },
   nickName: { length: 30, type: FieldTypes.STRING },
-  password: { length: 30, type: FieldTypes.STRING }
+  password: { length: 30, type: FieldTypes.STRING },
+  defaultVal: { length: 10, type: FieldTypes.INT, default: 0 }
 });
 
 test(async function testInsert() {
@@ -33,7 +34,11 @@ test(async function testInsert() {
 
 test(async function testUpdate() {
   // update by primary key
-  let affectedRows = await User.update({ id: 2, name: "USER2" });
+  let affectedRows = await User.update({
+    id: 2,
+    name: "USER2",
+    nickName: "test"
+  });
   assertEquals(affectedRows, 1);
 
   // updte by where
@@ -55,7 +60,8 @@ test(async function testFindById() {
     id: 1,
     name: "user1",
     password: "TEST",
-    nickName: "Enok"
+    nickName: "Enok",
+    defaultVal: 0
   });
 });
 
@@ -67,7 +73,8 @@ test(async function testFindOne() {
     id: 1,
     name: "user1",
     password: "TEST",
-    nickName: "Enok"
+    nickName: "Enok",
+    defaultVal: 0
   });
 
   user = await User.findOne({ name: () => replaceParams("= ?", ["user1"]) });
@@ -77,7 +84,8 @@ test(async function testFindOne() {
     id: 1,
     name: "user1",
     password: "TEST",
-    nickName: "Enok"
+    nickName: "Enok",
+    defaultVal: 0
   });
 
   user = await User.findOne({ name: "noneuser" });

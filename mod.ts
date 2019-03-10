@@ -172,7 +172,7 @@ export class Model<
     where = buildWhere(where);
     let val = Object.keys(data)
       .map(key => {
-        return replaceParams(`?? = ?`, [key, data[key]]);
+        return replaceParams(`?? = ?`, [camel2line(key), data[key]]);
       })
       .join(", ");
     const result = await client.execute(`UPDATE ?? SET ${val} ${where}`, [
