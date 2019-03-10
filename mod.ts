@@ -66,6 +66,7 @@ export function where(where: Object): string {
     "WHERE " +
     Object.keys(where)
       .map(key => {
+        key = camel2line(key);
         let val = where[key];
         // If the type of field value is a function, treat it as a custom OP
         if (typeof val === "function")
