@@ -66,8 +66,8 @@ export function where(where: Object): string {
     "WHERE " +
     Object.keys(where)
       .map(key => {
-        key = camel2line(key);
         let val = where[key];
+        key = camel2line(key);
         // If the type of field value is a function, treat it as a custom OP
         if (typeof val === "function")
           return replaceParams("?? ", [key]) + val();
@@ -156,7 +156,7 @@ export class Model<
   async insert(data: T): Promise<string | number> {
     const result = await client.execute(`INSERT INTO ?? ?? VALUES ?`, [
       this.name,
-      Object.keys(data),
+      Object.keys(data).map(camel2line),
       Object.values(data)
     ]);
     return result.lastInsertId;

@@ -6,13 +6,15 @@ import { assertEquals, assert } from "https://deno.land/x/testing/asserts.ts";
 const User = define("users", {
   id: { autoIncrement: true, length: 11, type: FieldTypes.INT, primary: true },
   name: { length: 30, type: FieldTypes.STRING },
+  nickName: { length: 30, type: FieldTypes.STRING },
   password: { length: 30, type: FieldTypes.STRING }
 });
 
 test(async function testInsert() {
   let id = await User.insert({
     name: "user1",
-    password: "test"
+    password: "test",
+    nickName: "Enok"
   });
   assertEquals(id, 1);
 
@@ -49,19 +51,34 @@ test(async function testFindById() {
   assert(user.updatedAt != null);
   delete user.createdAt;
   delete user.updatedAt;
-  assertEquals(user, { id: 1, name: "user1", password: "TEST" });
+  assertEquals(user, {
+    id: 1,
+    name: "user1",
+    password: "TEST",
+    nickName: "Enok"
+  });
 });
 
 test(async function testFindOne() {
-  let user = await User.findOne({ name: "user1" });
+  let user = await User.findOne({ nickName: "Enok" });
   delete user.createdAt;
   delete user.updatedAt;
-  assertEquals(user, { id: 1, name: "user1", password: "TEST" });
+  assertEquals(user, {
+    id: 1,
+    name: "user1",
+    password: "TEST",
+    nickName: "Enok"
+  });
 
   user = await User.findOne({ name: () => replaceParams("= ?", ["user1"]) });
   delete user.createdAt;
   delete user.updatedAt;
-  assertEquals(user, { id: 1, name: "user1", password: "TEST" });
+  assertEquals(user, {
+    id: 1,
+    name: "user1",
+    password: "TEST",
+    nickName: "Enok"
+  });
 
   user = await User.findOne({ name: "noneuser" });
   assertEquals(user, null);
@@ -91,7 +108,7 @@ async function main() {
   await client.connect({
     hostname: "127.0.0.1",
     port: 3306,
-    debug: true,
+    debug: false,
     username: "root",
     password: "",
     db: ""
