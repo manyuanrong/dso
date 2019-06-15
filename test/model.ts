@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "../deps.ts";
-import { BaseModel, Defaults, dso, Field, FieldType, Join, Model, Where } from "../mod.ts";
+import { BaseModel, dso, Field, FieldType, Join, Model, Where } from "../mod.ts";
 import { clientTest } from "../test.ts";
 
 @Model("users")
@@ -32,9 +32,6 @@ class TopicModel extends BaseModel<TopicModel> {
 
   @Field({ type: FieldType.STRING })
   title: string;
-
-  @Field({ type: FieldType.DATE, default: Defaults.CURRENT_TIMESTAMP })
-  createdAt: Date;
 }
 
 const userModel = new UserModel();
@@ -68,7 +65,10 @@ clientTest(async function testUpdate() {
     }),
     1
   );
-  assertEquals(await userModel.findById(id), {
+  const user = await userModel.findById(id);
+  assertEquals(user, {
+    updated_at: user.updated_at,
+    created_at: user.created_at,
     defaultVal: 0,
     id: 1,
     nickName: "foo",
@@ -87,13 +87,21 @@ clientTest(async function testFindOneByWhere() {
     )
   );
   const topic = await topicModel.findById(1);
-  assertEquals(user, { id: 1, nickName: "foo", password: null, defaultVal: 0 });
-  assert(!!topic.createdAt);
+  assertEquals(user, {
+    id: 1,
+    nickName: "foo",
+    password: null,
+    defaultVal: 0,
+    updated_at: user.updated_at,
+    created_at: user.created_at
+  });
+  assert(!!topic.created_at);
   assertEquals(topic, {
+    updated_at: topic.updated_at,
+    created_at: topic.created_at,
     id: 1,
     title: "foo",
-    userId: 1,
-    createdAt: topic.createdAt
+    userId: 1
   });
 });
 
@@ -123,12 +131,14 @@ clientTest(async function testFindOneByOptions() {
     fields: ["topics.*", "users.nick_name as userNickName"],
     join: [Join.left("users").on("users.id", "topics.user_id")]
   });
-  assert(!!topic.createdAt);
+  assert(!!topic.created_at);
+  assert(!!topic.updated_at);
   assertEquals(topic, {
     id: 1,
     title: "foo",
     userId: 1,
     userNickName: "foo",
-    createdAt: topic.createdAt
+    updated_at: topic.updated_at,
+    created_at: topic.created_at
   });
 });

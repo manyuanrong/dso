@@ -1,7 +1,6 @@
 import { assert, Join, Order, Query, Where } from "../deps.ts";
 import { dso } from "./dso.ts";
-import { FieldOptions } from "./field.ts";
-import { camel2line } from "./util.ts";
+import { Defaults, FieldOptions, FieldType } from "./field.ts";
 
 export interface QueryOptions {
   fields?: string[];
@@ -16,7 +15,7 @@ export interface QueryOptions {
 /** Model Decorator */
 export function Model(name: string) {
   return (target: BaseModelConstructor) => {
-    Reflect.defineMetadata("model:name", camel2line(name), target.prototype);
+    Reflect.defineMetadata("model:name", name, target.prototype);
   };
 }
 
@@ -30,6 +29,9 @@ export type ModelFields<T> = Partial<Omit<T, keyof BaseModel<any>>>;
 
 /** Model base class */
 export class BaseModel<T extends BaseModel<any>> {
+  created_at: Date;
+  updated_at: Date;
+  
   /** get model name */
   get modelName(): string {
     return Reflect.getMetadata("model:name", this);
@@ -42,7 +44,23 @@ export class BaseModel<T extends BaseModel<any>> {
 
   /** get defined fields list */
   get modelFields(): FieldOptions[] {
-    return Reflect.getMetadata("model:fields", this) || [];
+    return (
+      Reflect.getMetadata("model:fields", this) || [
+        {
+          type: FieldType.DATE,
+          default: Defaults.CURRENT_TIMESTAMP,
+          autoUpdate: true,
+          name: "updated_at",
+          property: "updated_at"
+        },
+        {
+          type: FieldType.DATE,
+          default: Defaults.CURRENT_TIMESTAMP,
+          name: "created_at",
+          property: "created_at"
+        }
+      ]
+    );
   }
 
   /** return a new Query instance with table name */
