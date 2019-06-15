@@ -19,7 +19,7 @@ import {
   Join,
   Model,
   Where
-} from "https://deno.land/x/dso@0.2.1/mod.ts";
+} from "https://deno.land/x/dso@0.2.3/mod.ts";
 
 // Define a database model
 @Model("users")
