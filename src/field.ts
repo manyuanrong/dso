@@ -16,7 +16,7 @@ export enum FieldType {
 
 /** Field Decorator */
 export function Field(options: FieldOptions) {
-  return (target: BaseModel<any>, property: string) => {
+  return (target: BaseModel, property: string) => {
     const fields = target.modelFields;
     const name = camel2line(property);
     fields.push({ ...options, property, name });

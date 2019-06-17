@@ -1,4 +1,4 @@
-import { assert, Join, Order, Query, Where } from "../deps.ts";
+import { assert, Connection, Join, Order, Query, Where } from "../deps.ts";
 import { dso } from "./dso.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 
@@ -13,25 +13,25 @@ export interface QueryOptions {
 }
 
 /** Model Decorator */
-export function Model(name: string) {
-  return (target: BaseModelConstructor) => {
+export function Model<T extends BaseModel>(name: string) {
+  return (target: { new (): T }) => {
     Reflect.defineMetadata("model:name", name, target.prototype);
   };
 }
 
-/** @ignore */
-interface BaseModelConstructor {
-  new (): BaseModel<any>;
-}
-
 /** Model Fields list */
-export type ModelFields<T> = Partial<Omit<T, keyof BaseModel<any>>>;
+export type ModelFields<T> = Partial<Omit<T, keyof BaseModel>> & {
+  created_at?: Date;
+  updated_at?: Date;
+};
 
 /** Model base class */
-export class BaseModel<T extends BaseModel<any>> {
+export class BaseModel {
   created_at: Date;
   updated_at: Date;
-  
+
+  private connection: Connection;
+
   /** get model name */
   get modelName(): string {
     return Reflect.getMetadata("model:name", this);
@@ -73,7 +73,7 @@ export class BaseModel<T extends BaseModel<any>> {
    * Convert data object to model
    * @param data
    */
-  private convertModel(data: Object): T {
+  private convertModel(data: Object): ModelFields<this> {
     if (!data) return null;
     const model = {};
     const fieldsMapping = {};
@@ -82,14 +82,14 @@ export class BaseModel<T extends BaseModel<any>> {
       const propertyName = fieldsMapping[key];
       model[propertyName || key] = data[key];
     });
-    return model as T;
+    return model;
   }
 
   /**
    * Convert model object to db object
    * @param model
    */
-  private convertObject(model: ModelFields<T>): Object {
+  private convertObject(model: ModelFields<this>): Object {
     const data = {};
     const fieldsMapping = {};
     this.modelFields.map(field => (fieldsMapping[field.property] = field.name));
@@ -123,7 +123,7 @@ export class BaseModel<T extends BaseModel<any>> {
    * find one record
    * @param where conditions
    */
-  async findOne(options: Where | QueryOptions): Promise<T> {
+  async findOne(options: Where | QueryOptions): Promise<ModelFields<this>> {
     if (options instanceof Where) {
       options = {
         where: options
@@ -147,7 +147,7 @@ export class BaseModel<T extends BaseModel<any>> {
   }
 
   /** find all records by given conditions */
-  async findAll(options: Where | QueryOptions): Promise<T[]> {
+  async findAll(options: Where | QueryOptions): Promise<ModelFields<this>[]> {
     if (options instanceof Where) {
       options = {
         where: options
@@ -158,20 +158,20 @@ export class BaseModel<T extends BaseModel<any>> {
   }
 
   /** find one record by primary key */
-  async findById(id: string | number): Promise<T> {
+  async findById(id: string | number): Promise<ModelFields<this>> {
     assert(!!this.primaryKey);
     return await this.findOne(Where.field(this.primaryKey.name).eq(id));
   }
 
   /** insert record */
-  async insert(fields: ModelFields<T>): Promise<number> {
+  async insert(fields: Partial<this>): Promise<number> {
     const query = this.builder().insert(this.convertObject(fields));
     const result = await this.execute(query);
     return result.lastInsertId;
   }
 
   /** update records by given conditions */
-  async update(data: ModelFields<T>, where?: Where): Promise<number> {
+  async update(data: Partial<this>, where?: Where): Promise<number> {
     if (!where && this.primaryKey && data[this.primaryKey.property]) {
       where = Where.field(this.primaryKey.name).eq(
         data[this.primaryKey.property]
@@ -192,7 +192,9 @@ export class BaseModel<T extends BaseModel<any>> {
   async query(query: Query): Promise<any[]> {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
-    const result = await dso.client.query(sql);
+    const result = this.connection
+      ? await this.connection.query(sql)
+      : await dso.client.query(sql);
     dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
     return result;
   }
@@ -204,8 +206,25 @@ export class BaseModel<T extends BaseModel<any>> {
   async execute(query: Query) {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
-    const result = await dso.client.execute(sql);
+    const result = this.connection
+      ? await this.connection.execute(sql)
+      : await dso.client.execute(sql);
     dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
     return result;
+  }
+
+  async transaction<T = any>(processor: (model: this) => Promise<T>) {
+    return (await dso.client.transaction(async connection => {
+      const model: this = new (this.constructor as any)();
+      model.connection = connection;
+      try {
+        const result = await processor(model);
+        return result;
+      } catch (e) {
+        throw e;
+      } finally {
+        model.connection = null;
+      }
+    })) as T;
   }
 }

@@ -1,9 +1,9 @@
-import { assert, assertEquals } from "../deps.ts";
-import { BaseModel, dso, Field, FieldType, Join, Model, Where } from "../mod.ts";
+import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
+import { BaseModel, dso, Field, FieldType, Join, Model, Query, Where } from "../mod.ts";
 import { clientTest } from "../test.ts";
 
 @Model("users")
-class UserModel extends BaseModel<UserModel> {
+class UserModel extends BaseModel {
   @Field({
     type: FieldType.INT,
     primary: true,
@@ -23,7 +23,7 @@ class UserModel extends BaseModel<UserModel> {
 }
 
 @Model("topics")
-class TopicModel extends BaseModel<TopicModel> {
+class TopicModel extends BaseModel {
   @Field({ type: FieldType.INT, autoIncrement: true, primary: true })
   id: number;
 
@@ -34,10 +34,8 @@ class TopicModel extends BaseModel<TopicModel> {
   title: string;
 }
 
-const userModel = new UserModel();
-const topicModel = new TopicModel();
-dso.define(userModel);
-dso.define(topicModel);
+const userModel = dso.define(UserModel);
+const topicModel = dso.define(TopicModel);
 
 clientTest(async function testInsert() {
   assertEquals(
@@ -141,4 +139,31 @@ clientTest(async function testFindOneByOptions() {
     updated_at: topic.updated_at,
     created_at: topic.created_at
   });
+});
+
+clientTest(async function testTransactionFail() {
+  let id: number;
+  await assertThrowsAsync(async () => {
+    await userModel.transaction<boolean>(async model => {
+      id = await model.insert({ nickName: "foo", password: "bar" });
+      let user = await model.findById(id);
+      assert(!!user);
+      await model.query(new Query().table("notexixts").select("*"));
+      return true;
+    });
+  });
+  const user = await userModel.findById(id);
+  assert(!user);
+});
+
+clientTest(async function testTransactionSuccess() {
+  let id: number;
+  await userModel.transaction<boolean>(async model => {
+    id = await model.insert({ nickName: "foo", password: "bar" });
+    let user = await model.findById(id);
+    assert(!!user);
+    return true;
+  });
+  const user = await userModel.findById(id);
+  assert(!!user);
 });

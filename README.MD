@@ -19,7 +19,7 @@ import {
   Join,
   Model,
   Where
-} from "https://deno.land/x/dso@0.2.5/mod.ts";
+} from "https://deno.land/x/dso@0.3.0/mod.ts";
 
 // Define a database model
 @Model("users")
@@ -95,7 +95,7 @@ await dso.connect({
 
 #### dso.define()
 
-Add an annotated `Model` instance
+Add an annotated `Model` instance and return the instance.
 
 ```ts
 @Model("users")
@@ -115,8 +115,7 @@ class UserModel extends BaseModel<UserModel> {
   password: string;
 }
 
-export default const userModel = new UserModel();
-dso.define(userModel);
+export default const userModel = dso.define(UserModel);
 
 // userModel.findById(...)
 // userModel.findAll(...)
@@ -124,6 +123,14 @@ dso.define(userModel);
 // userModel.insert(...)
 // userModel.update(...)
 // userModel.delete(...)
+
+// Transaction example
+// const ids = userModel.transaction<number[]>(async userModel=>{
+//   return [
+//     await userModel.insert(...),
+//     await userModel.insert(...)
+//   ];
+// })
 ```
 
 #### dso.sync

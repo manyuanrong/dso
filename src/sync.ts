@@ -3,11 +3,7 @@ import { dso } from "../mod.ts";
 import { FieldType } from "./field.ts";
 import { BaseModel } from "./model.ts";
 
-export async function sync(
-  client: Client,
-  model: BaseModel<any>,
-  force: boolean
-) {
+export async function sync(client: Client, model: BaseModel, force: boolean) {
   if (force) {
     await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
   }

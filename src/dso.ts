@@ -6,7 +6,7 @@ import { sync } from "./sync.ts";
 let _client: Client = null;
 
 /** @ignore */
-let _models: BaseModel<any>[] = [];
+let _models: BaseModel[] = [];
 
 /**
  * Global dso instance
@@ -45,7 +45,8 @@ export const dso = {
    * add model
    * @param model
    */
-  define(model: BaseModel<any>) {
+  define<T extends BaseModel>(ModelClass: { new (): T }): T {
+    const model = new ModelClass();
     _models.push(model);
     return model;
   },
