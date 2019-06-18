@@ -19,7 +19,7 @@ import {
   Join,
   Model,
   Where
-} from "https://deno.land/x/dso@0.3.0/mod.ts";
+} from "https://deno.land/x/dso@0.4.0/mod.ts";
 
 // Define a database model
 @Model("users")
@@ -142,6 +142,23 @@ When installing or initializing a database, you can use sync to synchronize the 
 // otherwise only new models will be synchronized.
 const force = true; // force
 await dso.sync(force);
+```
+
+#### dso.transaction<T>(processor: (transaction: Transaction) => Promise<T>): Promise<T>
+
+Create and start a transaction.
+
+New `Model` instances must be obtained through `getModel(Model)`. Otherwise, it will not be controlled by transactions.
+
+```ts
+const result = await dso.transaction<boolean>(async trans => {
+  const userModel = trans.getModel(UserModel);
+  const topicModel = trans.getModel(TopicModel);
+
+  userId = await userModel.insert({ nickName: "foo", password: "bar" });
+  topicId = await topicModel.insert({ title: "zoo", userId });
+  return true;
+});
 ```
 
 ### Top Level Types

@@ -1,6 +1,7 @@
 import { Client, ClientConfig } from "../deps.ts";
 import { BaseModel } from "./model.ts";
 import { sync } from "./sync.ts";
+import { Transaction } from "./transaction.ts";
 
 /** @ignore */
 let _client: Client = null;
@@ -50,6 +51,8 @@ export const dso = {
     _models.push(model);
     return model;
   },
+
+  transaction: Transaction.transaction,
 
   /**
    * connect to database

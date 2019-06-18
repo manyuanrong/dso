@@ -30,7 +30,7 @@ export class BaseModel {
   created_at: Date;
   updated_at: Date;
 
-  private connection: Connection;
+  constructor(public connection?: Connection) {}
 
   /** get model name */
   get modelName(): string {
@@ -211,20 +211,5 @@ export class BaseModel {
       : await dso.client.execute(sql);
     dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
     return result;
-  }
-
-  async transaction<T = any>(processor: (model: this) => Promise<T>) {
-    return (await dso.client.transaction(async connection => {
-      const model: this = new (this.constructor as any)();
-      model.connection = connection;
-      try {
-        const result = await processor(model);
-        return result;
-      } catch (e) {
-        throw e;
-      } finally {
-        model.connection = null;
-      }
-    })) as T;
   }
 }

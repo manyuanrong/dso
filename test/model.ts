@@ -1,5 +1,14 @@
 import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
-import { BaseModel, dso, Field, FieldType, Join, Model, Query, Where } from "../mod.ts";
+import {
+  BaseModel,
+  dso,
+  Field,
+  FieldType,
+  Join,
+  Model,
+  Query,
+  Where
+} from "../mod.ts";
 import { clientTest } from "../test.ts";
 
 @Model("users")
@@ -142,28 +151,41 @@ clientTest(async function testFindOneByOptions() {
 });
 
 clientTest(async function testTransactionFail() {
-  let id: number;
+  let userId: number;
+  let topicId: number;
   await assertThrowsAsync(async () => {
-    await userModel.transaction<boolean>(async model => {
-      id = await model.insert({ nickName: "foo", password: "bar" });
-      let user = await model.findById(id);
+    await dso.transaction<boolean>(async trans => {
+      const userModel = trans.getModel(UserModel);
+      const topicModel = trans.getModel(TopicModel);
+      userId = await userModel.insert({ nickName: "foo", password: "bar" });
+      topicId = await topicModel.insert({ title: "zoo", userId });
+      let user = await userModel.findById(userId);
       assert(!!user);
-      await model.query(new Query().table("notexixts").select("*"));
+      await userModel.query(new Query().table("notexixts").select("*"));
       return true;
     });
   });
-  const user = await userModel.findById(id);
+  const user = await userModel.findById(userId);
+  const topic = await topicModel.findById(topicId);
   assert(!user);
+  assert(!topic);
 });
 
 clientTest(async function testTransactionSuccess() {
-  let id: number;
-  await userModel.transaction<boolean>(async model => {
-    id = await model.insert({ nickName: "foo", password: "bar" });
-    let user = await model.findById(id);
+  let topicId: number;
+  let userId: number;
+  const result = await dso.transaction<boolean>(async trans => {
+    const userModel = trans.getModel(UserModel);
+    const topicModel = trans.getModel(TopicModel);
+    userId = await userModel.insert({ nickName: "foo", password: "bar" });
+    topicId = await topicModel.insert({ title: "zoo", userId });
+    let user = await userModel.findById(userId);
     assert(!!user);
     return true;
   });
-  const user = await userModel.findById(id);
+  const user = await userModel.findById(userId);
+  const topic = await userModel.findById(topicId);
+  assertEquals(result, true);
+  assert(!!topic);
   assert(!!user);
 });
