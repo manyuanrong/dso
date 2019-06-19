@@ -19,7 +19,7 @@ import {
   Join,
   Model,
   Where
-} from "https://deno.land/x/dso@0.4.0/mod.ts";
+} from "https://deno.land/x/dso@0.4.1/mod.ts";
 
 // Define a database model
 @Model("users")
@@ -123,14 +123,6 @@ export default const userModel = dso.define(UserModel);
 // userModel.insert(...)
 // userModel.update(...)
 // userModel.delete(...)
-
-// Transaction example
-// const ids = userModel.transaction<number[]>(async userModel=>{
-//   return [
-//     await userModel.insert(...),
-//     await userModel.insert(...)
-//   ];
-// })
 ```
 
 #### dso.sync
