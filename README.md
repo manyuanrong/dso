@@ -3,7 +3,7 @@
 [![Build Status](https://www.travis-ci.org/manyuanrong/dso.svg?branch=master)](https://www.travis-ci.org/manyuanrong/dso)
 ![GitHub](https://img.shields.io/github/license/manyuanrong/dso.svg)
 ![GitHub release](https://img.shields.io/github/release/manyuanrong/dso.svg)
-![(Deno)](https://img.shields.io/badge/deno-0.12.0-green.svg)
+![(Deno)](https://img.shields.io/badge/deno-0.17.0-green.svg)
 
 `dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql)
 
@@ -19,7 +19,7 @@ import {
   Join,
   Model,
   Where
-} from "https://deno.land/x/dso@0.4.5/mod.ts";
+} from "https://deno.land/x/dso@0.4.6/mod.ts";
 
 // Define a database model
 @Model("users")
