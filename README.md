@@ -48,7 +48,7 @@ async function main() {
     hostname: "127.0.0.1",
     port: 3306,
     username: "root",
-    passwod: "",
+    password: "",
     db: "dbname"
   });
 
@@ -88,7 +88,7 @@ await dso.connect({
   hostname: "127.0.0.1", // database hostname
   port: 3306, // database port
   username: "root", // database username
-  passwod: "", // database password
+  password: "", // database password
   db: "dbname" // database name. (tips: The database must be created before linking)
 });
 ```
