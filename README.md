@@ -39,8 +39,7 @@ class UserModel extends BaseModel {
   password: string;
 }
 
-dso.define(UserModel);
-const userModel = new UserModel();
+const userModel = dso.define(UserModel);
 
 async function main() {
   // The database must be created before linking
