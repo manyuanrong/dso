@@ -23,7 +23,7 @@ import {
 
 // Define a database model
 @Model("users")
-class UserModel extends BaseModel<UserModel> {
+class UserModel extends BaseModel {
   @Field({
     type: FieldType.INT,
     primary: true,
@@ -39,8 +39,7 @@ class UserModel extends BaseModel<UserModel> {
   password: string;
 }
 
-const userModel = new UserModel();
-dso.define(userModel);
+dso.define(UserModel);
 
 async function main() {
   // The database must be created before linking
