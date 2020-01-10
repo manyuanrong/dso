@@ -11,7 +11,8 @@ export enum FieldType {
   INT,
   STRING,
   TEXT,
-  BOOLEAN
+  BOOLEAN, 
+  LONGTEXT
 }
 
 /** Field Decorator */

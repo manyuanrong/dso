@@ -28,6 +28,10 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
         case FieldType.TEXT:
           type = `TEXT(${field.length})`;
           break;
+        case FieldType.LONGTEXT: {
+          type = `LONGTEXT`;
+          break;
+        }
       }
       def += ` ${type}`;
       if (field.notNull) def += " NOT NULL";
