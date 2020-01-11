@@ -1,6 +1,6 @@
 import { assert, Client } from "../deps.ts";
 import { dso } from "../mod.ts";
-import { FieldType } from "./field.ts";
+import { FieldType, Defaults } from "./field.ts";
 import { BaseModel } from "./model.ts";
 
 export async function sync(client: Client, model: BaseModel, force: boolean) {
@@ -35,8 +35,14 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
       }
       def += ` ${type}`;
       if (field.notNull) def += " NOT NULL";
+      if (field.default != null) {
+        if (field.default === Defaults.NULL) {
+          def += ` NULL DEFAULT NULL`;
+        } else {
+          def += ` DEFAULT ${field.default}`;
+        }
+      }
       if (field.autoIncrement) def += " AUTO_INCREMENT";
-      if (field.default != null) def += ` DEFAULT ${field.default}`;
       if (field.autoUpdate) {
         assert(
           field.type === FieldType.DATE,
