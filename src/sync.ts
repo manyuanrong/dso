@@ -32,6 +32,10 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           type = `LONGTEXT`;
           break;
         }
+        case FieldType.GeoPOINT: {
+          type = `POINT`;
+          break;
+        }
       }
       def += ` ${type}`;
       if (field.notNull) def += " NOT NULL";
