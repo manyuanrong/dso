@@ -98,7 +98,7 @@ Add an annotated `Model` instance and return the instance.
 
 ```ts
 @Model("users")
-class UserModel extends BaseModel<UserModel> {
+class UserModel extends BaseModel {
   @Field({
     type: FieldType.INT,
     primary: true,

@@ -2,7 +2,8 @@ import { BaseModel } from "./model.ts";
 import { camel2line } from "./util.ts";
 
 export enum Defaults {
-  CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP"
+  CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP", 
+  NULL = "NULL"
 }
 
 /** Field type */
@@ -11,7 +12,8 @@ export enum FieldType {
   INT,
   STRING,
   TEXT,
-  BOOLEAN
+  BOOLEAN, 
+  LONGTEXT
 }
 
 /** Field Decorator */
