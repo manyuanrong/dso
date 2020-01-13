@@ -13,7 +13,8 @@ export enum FieldType {
   STRING,
   TEXT,
   BOOLEAN, 
-  LONGTEXT
+  LONGTEXT, 
+  GeoPOINT, 
 }
 
 /** Field Decorator */
