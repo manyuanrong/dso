@@ -19,28 +19,28 @@ class UserModel extends BaseModel {
     length: 11,
     autoIncrement: true
   })
-  id: number;
+  id!: number;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  nickName: string;
+  nickName?: string;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  password: string;
+  password?: string;
 
   @Field({ type: FieldType.INT, default: 0 })
-  defaultVal: string;
+  defaultVal?: string;
 }
 
 @Model("topics")
 class TopicModel extends BaseModel {
   @Field({ type: FieldType.INT, autoIncrement: true, primary: true })
-  id: number;
+  id!: number;
 
   @Field({ type: FieldType.INT, notNull: true })
-  userId: number;
+  userId?: number;
 
   @Field({ type: FieldType.STRING })
-  title: string;
+  title?: string;
 }
 
 const userModel = dso.define(UserModel);
@@ -64,7 +64,7 @@ clientTest(async function testInsert() {
 });
 
 clientTest(async function testUpdate() {
-  const id: number = await userModel.insert({ nickName: "foo" });
+  const id: number | undefined = await userModel.insert({ nickName: "foo" });
   assertEquals(
     await userModel.update({
       id,
@@ -72,10 +72,10 @@ clientTest(async function testUpdate() {
     }),
     1
   );
-  const user = await userModel.findById(id);
+  const user = await userModel.findById(id!);
   assertEquals(user, {
-    updated_at: user.updated_at,
-    created_at: user.created_at,
+    updated_at: user?.updated_at,
+    created_at: user?.created_at,
     defaultVal: 0,
     id: 1,
     nickName: "foo",
@@ -99,13 +99,13 @@ clientTest(async function testFindOneByWhere() {
     nickName: "foo",
     password: null,
     defaultVal: 0,
-    updated_at: user.updated_at,
-    created_at: user.created_at
+    updated_at: user?.updated_at,
+    created_at: user?.created_at
   });
-  assert(!!topic.created_at);
+  assert(!!topic?.created_at);
   assertEquals(topic, {
-    updated_at: topic.updated_at,
-    created_at: topic.created_at,
+    updated_at: topic?.updated_at,
+    created_at: topic?.created_at,
     id: 1,
     title: "foo",
     userId: 1
@@ -138,53 +138,53 @@ clientTest(async function testFindOneByOptions() {
     fields: ["topics.*", "users.nick_name as userNickName"],
     join: [Join.left("users").on("users.id", "topics.user_id")]
   });
-  assert(!!topic.created_at);
-  assert(!!topic.updated_at);
+  assert(!!topic?.created_at);
+  assert(!!topic?.updated_at);
   assertEquals(topic, {
     id: 1,
     title: "foo",
     userId: 1,
     userNickName: "foo",
-    updated_at: topic.updated_at,
-    created_at: topic.created_at
+    updated_at: topic?.updated_at,
+    created_at: topic?.created_at
   });
 });
 
 clientTest(async function testTransactionFail() {
-  let userId: number;
-  let topicId: number;
+  let userId: number | undefined;
+  let topicId: number | undefined;
   await assertThrowsAsync(async () => {
     await dso.transaction<boolean>(async trans => {
       const userModel = trans.getModel(UserModel);
       const topicModel = trans.getModel(TopicModel);
       userId = await userModel.insert({ nickName: "foo", password: "bar" });
       topicId = await topicModel.insert({ title: "zoo", userId });
-      let user = await userModel.findById(userId);
+      let user = await userModel.findById(userId!);
       assert(!!user);
       await userModel.query(new Query().table("notexixts").select("*"));
       return true;
     });
   });
-  const user = await userModel.findById(userId);
-  const topic = await topicModel.findById(topicId);
+  const user = await userModel.findById(userId!);
+  const topic = await topicModel.findById(topicId!);
   assert(!user);
   assert(!topic);
 });
 
 clientTest(async function testTransactionSuccess() {
-  let topicId: number;
-  let userId: number;
+  let topicId: number | undefined;
+  let userId: number | undefined;
   const result = await dso.transaction<boolean>(async trans => {
     const userModel = trans.getModel(UserModel);
     const topicModel = trans.getModel(TopicModel);
     userId = await userModel.insert({ nickName: "foo", password: "bar" });
     topicId = await topicModel.insert({ title: "zoo", userId });
-    let user = await userModel.findById(userId);
+    let user = await userModel.findById(userId!);
     assert(!!user);
     return true;
   });
-  const user = await userModel.findById(userId);
-  const topic = await userModel.findById(topicId);
+  const user = await userModel.findById(userId!);
+  const topic = await userModel.findById(topicId!);
   assertEquals(result, true);
   assert(!!topic);
   assert(!!user);

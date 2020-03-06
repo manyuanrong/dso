@@ -2,7 +2,7 @@ import { BaseModel } from "./model.ts";
 import { camel2line } from "./util.ts";
 
 export enum Defaults {
-  CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP", 
+  CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP",
   NULL = "NULL"
 }
 
@@ -12,13 +12,13 @@ export enum FieldType {
   INT,
   STRING,
   TEXT,
-  BOOLEAN, 
-  LONGTEXT, 
-  GeoPOINT, 
+  BOOLEAN,
+  LONGTEXT,
+  GeoPOINT
 }
 
 /** Field Decorator */
-export function Field(options: FieldOptions) {
+export function Field(options: Partial<FieldOptions> & { type: FieldType }) {
   return (target: BaseModel, property: string) => {
     const fields = target.modelFields;
     const name = camel2line(property);
@@ -29,7 +29,7 @@ export function Field(options: FieldOptions) {
 
 /** Field Options */
 export interface FieldOptions {
-  name?: string;
+  name: string;
   type: FieldType;
   property?: string;
   primary?: boolean;

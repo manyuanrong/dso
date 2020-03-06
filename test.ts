@@ -1,12 +1,12 @@
-import { Client, runTests, test, TestFunction } from "./deps.ts";
+import { Client } from "./deps.ts";
 import { dso } from "./mod.ts";
 import "./test/model.ts";
 
 const client = new Client();
 dso.showQueryLog = false;
 
-export async function clientTest(fn: TestFunction) {
-  test({
+export async function clientTest(fn: Function) {
+  Deno.test({
     name: fn.name,
     fn: async () => {
       await dso.sync(true);
@@ -30,7 +30,7 @@ async function main() {
   await client.execute(`USE test_orm`);
   await client.close();
   await dso.connect({ ...config, db: "test_orm" });
-  await runTests();
+  await Deno.runTests();
 }
 
 main();

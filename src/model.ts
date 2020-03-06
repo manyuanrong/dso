@@ -27,8 +27,8 @@ export type ModelFields<T> = Partial<Omit<T, keyof BaseModel>> & {
 
 /** Model base class */
 export class BaseModel {
-  created_at: Date;
-  updated_at: Date;
+  created_at?: Date;
+  updated_at?: Date;
 
   constructor(public connection?: Connection) {}
 
@@ -38,7 +38,7 @@ export class BaseModel {
   }
 
   /** get primary key */
-  get primaryKey(): FieldOptions {
+  get primaryKey(): FieldOptions | undefined {
     return this.modelFields.find(field => field.primary);
   }
 
@@ -73,10 +73,12 @@ export class BaseModel {
    * Convert data object to model
    * @param data
    */
-  private convertModel(data: Object): ModelFields<this> {
-    if (!data) return null;
-    const model = {};
-    const fieldsMapping = {};
+  private convertModel(data: {
+    [key: string]: any;
+  }): ModelFields<this> | undefined {
+    if (!data) return;
+    const model: any = {};
+    const fieldsMapping: any = {};
     this.modelFields.map(field => (fieldsMapping[field.name] = field.property));
     Object.keys(data).forEach(key => {
       const propertyName = fieldsMapping[key];
@@ -89,13 +91,15 @@ export class BaseModel {
    * Convert model object to db object
    * @param model
    */
-  private convertObject(model: ModelFields<this>): Object {
-    const data = {};
-    const fieldsMapping = {};
-    this.modelFields.map(field => (fieldsMapping[field.property] = field.name));
+  private convertObject(model: ModelFields<this>): { [key: string]: any } {
+    const data: any = {};
+    const fieldsMapping: any = {};
+    this.modelFields.map(
+      field => (fieldsMapping[field.property!] = field.name)
+    );
     Object.keys(model).forEach(key => {
       const name = fieldsMapping[key];
-      data[name || key] = model[key];
+      data[name || key] = model[key as keyof ModelFields<this>];
     });
     return data;
   }
@@ -123,7 +127,9 @@ export class BaseModel {
    * find one record
    * @param where conditions
    */
-  async findOne(options: Where | QueryOptions): Promise<ModelFields<this>> {
+  async findOne(
+    options: Where | QueryOptions
+  ): Promise<ModelFields<this> | undefined> {
     if (options instanceof Where) {
       options = {
         where: options
@@ -143,7 +149,7 @@ export class BaseModel {
         .delete()
         .where(where)
     );
-    return result.affectedRows;
+    return result.affectedRows ?? 0;
   }
 
   /** find all records by given conditions */
@@ -154,32 +160,39 @@ export class BaseModel {
       };
     }
     const result = await this.query(this.optionsToQuery(options));
-    return result.map(record => this.convertModel(record));
+    return result.map(record => this.convertModel(record)!);
   }
 
   /** find one record by primary key */
-  async findById(id: string | number): Promise<ModelFields<this>> {
+  async findById(id: string | number): Promise<ModelFields<this> | undefined> {
     assert(!!this.primaryKey);
     return await this.findOne(Where.field(this.primaryKey.name).eq(id));
   }
 
   /** insert record */
-  async insert(fields: Partial<this>): Promise<number> {
+  async insert(fields: Partial<this>): Promise<number | undefined> {
     const query = this.builder().insert(this.convertObject(fields));
     const result = await this.execute(query);
     return result.lastInsertId;
   }
 
   /** update records by given conditions */
-  async update(data: Partial<this>, where?: Where): Promise<number> {
-    if (!where && this.primaryKey && data[this.primaryKey.property]) {
+  async update(
+    data: Partial<this>,
+    where?: Where
+  ): Promise<number | undefined> {
+    if (
+      !where &&
+      this.primaryKey &&
+      data[this.primaryKey.property as keyof this]
+    ) {
       where = Where.field(this.primaryKey.name).eq(
-        data[this.primaryKey.property]
+        data[this.primaryKey.property as keyof this]
       );
     }
     const query = this.builder()
       .update(this.convertObject(data))
-      .where(where);
+      .where(where ?? "");
 
     const result = await this.execute(query);
     return result.affectedRows;

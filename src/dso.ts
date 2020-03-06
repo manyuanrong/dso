@@ -4,7 +4,7 @@ import { sync } from "./sync.ts";
 import { Transaction } from "./transaction.ts";
 
 /** @ignore */
-let _client: Client = null;
+let _client: Client;
 
 /** @ignore */
 let _models: BaseModel[] = [];
@@ -22,7 +22,7 @@ export const dso = {
    * Sync model to database table
    * @param force set true, will drop table before create table
    */
-  async sync(force: boolean = false) {
+  async sync(force: boolean = false): Promise<void> {
     for (const model of _models) {
       await sync(_client, model, force);
     }
