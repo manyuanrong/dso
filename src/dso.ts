@@ -66,5 +66,9 @@ export const dso = {
       await _client.connect(config);
     }
     return _client;
-  }
+  },
+
+  close(): void {
+    _client.close();
+  },
 };

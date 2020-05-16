@@ -10,9 +10,9 @@ export class Transaction {
   }
 
   static async transaction<T>(
-    processor: (transaction: Transaction) => Promise<T>
+    processor: (transaction: Transaction) => Promise<T>,
   ): Promise<T> {
-    return (await dso.client.transaction(async conn => {
+    return (await dso.client.transaction(async (conn) => {
       const trans = new Transaction(conn);
       return await processor(trans);
     })) as T;

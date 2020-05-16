@@ -3,7 +3,7 @@ import { camel2line } from "./util.ts";
 
 export enum Defaults {
   CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP",
-  NULL = "NULL"
+  NULL = "NULL",
 }
 
 /** Field type */
@@ -14,7 +14,7 @@ export enum FieldType {
   TEXT,
   BOOLEAN,
   LONGTEXT,
-  GeoPOINT
+  GeoPOINT,
 }
 
 /** Field Decorator */

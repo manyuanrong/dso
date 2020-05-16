@@ -9,7 +9,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
   }
 
   let defs = model.modelFields
-    .map(field => {
+    .map((field) => {
       let def = field.name;
       let type = "";
       switch (field.type) {
@@ -50,7 +50,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
       if (field.autoUpdate) {
         assert(
           field.type === FieldType.DATE,
-          "AutoUpdate only support Date field"
+          "AutoUpdate only support Date field",
         );
         def += ` ON UPDATE CURRENT_TIMESTAMP()`;
       }
@@ -68,7 +68,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     "(",
     defs,
     ")",
-    "ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+    "ENGINE=InnoDB DEFAULT CHARSET=utf8;",
   ].join(" ");
 
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);

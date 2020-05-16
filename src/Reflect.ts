@@ -92,15 +92,17 @@ namespace Reflect {
   type MemberDecorator = <T>(
     target: Object,
     propertyKey: string | symbol,
-    descriptor?: TypedPropertyDescriptor<T>
+    descriptor?: TypedPropertyDescriptor<T>,
   ) => TypedPropertyDescriptor<T> | void;
   declare const Symbol: { iterator: symbol; toPrimitive: symbol };
   declare const Set: SetConstructor;
   declare const WeakMap: WeakMapConstructor;
   declare const Map: MapConstructor;
   declare const global: any;
+
   // @ts-ignore
   declare const crypto: Crypto;
+
   // @ts-ignore
   declare const msCrypto: Crypto;
   declare const process: any;
@@ -121,7 +123,7 @@ namespace Reflect {
    */
   export declare function decorate(
     decorators: ClassDecorator[],
-    target: Function
+    target: Function,
   ): Function;
 
   /**
@@ -163,7 +165,7 @@ namespace Reflect {
     decorators: (PropertyDecorator | MethodDecorator)[],
     target: any,
     propertyKey: string | symbol,
-    attributes?: PropertyDescriptor | null
+    attributes?: PropertyDescriptor | null,
   ): PropertyDescriptor | undefined;
 
   /**
@@ -205,7 +207,7 @@ namespace Reflect {
     decorators: (PropertyDecorator | MethodDecorator)[],
     target: any,
     propertyKey: string | symbol,
-    attributes: PropertyDescriptor
+    attributes: PropertyDescriptor,
   ): PropertyDescriptor;
 
   /**
@@ -250,7 +252,7 @@ namespace Reflect {
    */
   export declare function metadata(
     metadataKey: any,
-    metadataValue: any
+    metadataValue: any,
   ): {
     (target: Function): void;
     (target: any, propertyKey: string | symbol): void;
@@ -278,7 +280,7 @@ namespace Reflect {
   export declare function defineMetadata(
     metadataKey: any,
     metadataValue: any,
-    target: any
+    target: any,
   ): void;
 
   /**
@@ -320,7 +322,7 @@ namespace Reflect {
     metadataKey: any,
     metadataValue: any,
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): void;
 
   /**
@@ -372,7 +374,7 @@ namespace Reflect {
   export declare function hasMetadata(
     metadataKey: any,
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): boolean;
 
   /**
@@ -391,7 +393,7 @@ namespace Reflect {
    */
   export declare function hasOwnMetadata(
     metadataKey: any,
-    target: any
+    target: any,
   ): boolean;
 
   /**
@@ -427,7 +429,7 @@ namespace Reflect {
   export declare function hasOwnMetadata(
     metadataKey: any,
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): boolean;
 
   /**
@@ -479,7 +481,7 @@ namespace Reflect {
   export declare function getMetadata(
     metadataKey: any,
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): any;
 
   /**
@@ -531,7 +533,7 @@ namespace Reflect {
   export declare function getOwnMetadata(
     metadataKey: any,
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): any;
 
   /**
@@ -580,7 +582,7 @@ namespace Reflect {
    */
   export declare function getMetadataKeys(
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): any[];
 
   /**
@@ -629,7 +631,7 @@ namespace Reflect {
    */
   export declare function getOwnMetadataKeys(
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): any[];
 
   /**
@@ -648,7 +650,7 @@ namespace Reflect {
    */
   export declare function deleteMetadata(
     metadataKey: any,
-    target: any
+    target: any,
   ): boolean;
 
   /**
@@ -684,27 +686,26 @@ namespace Reflect {
   export declare function deleteMetadata(
     metadataKey: any,
     target: any,
-    propertyKey: string | symbol
+    propertyKey: string | symbol,
   ): boolean;
 
-  (function(
+  (function (
     this: any,
     factory: (
       exporter: <K extends keyof typeof Reflect>(
         key: K,
-        value: typeof Reflect[K]
-      ) => void
-    ) => void
+        value: typeof Reflect[K],
+      ) => void,
+    ) => void,
   ) {
     var self;
-    const root =
-      typeof global === "object"
-        ? global
-        : typeof self === "object"
-        ? self
-        : typeof this === "object"
-        ? this
-        : Function("return this;")();
+    const root = typeof global === "object"
+      ? global
+      : typeof self === "object"
+      ? self
+      : typeof this === "object"
+      ? this
+      : Function("return this;")();
 
     let exporter = makeExporter(Reflect);
     if (typeof root.Reflect === "undefined") {
@@ -719,24 +720,24 @@ namespace Reflect {
       target: typeof Reflect,
       previous?: <K extends keyof typeof Reflect>(
         key: K,
-        value: typeof Reflect[K]
-      ) => void
+        value: typeof Reflect[K],
+      ) => void,
     ) {
       return <K extends keyof typeof Reflect>(
         key: K,
-        value: typeof Reflect[K]
+        value: typeof Reflect[K],
       ) => {
         if (typeof target[key] !== "function") {
           Object.defineProperty(target, key, {
             configurable: true,
             writable: true,
-            value
+            value,
           });
         }
         if (previous) previous(key, value);
       };
     }
-  })(function(exporter) {
+  })(function (exporter) {
     const hasOwn = Object.prototype.hasOwnProperty;
 
     // feature test for Symbol support
@@ -763,34 +764,31 @@ namespace Reflect {
 
       has: downLevel
         ? <V>(map: HashMap<V>, key: string | number | symbol) =>
-            hasOwn.call(map, key)
+          hasOwn.call(map, key)
         : <V>(map: HashMap<V>, key: string | number | symbol) => key in map,
 
       get: downLevel
         ? <V>(map: HashMap<V>, key: string | number | symbol): V | undefined =>
-            hasOwn.call(map, key) ? map[key as string | number] : undefined
+          hasOwn.call(map, key) ? map[key as string | number] : undefined
         : <V>(map: HashMap<V>, key: string | number | symbol): V | undefined =>
-            map[key as string | number]
+          map[key as string | number],
     };
 
     // Load global or shim versions of Map, Set, and WeakMap
     const functionPrototype = Object.getPrototypeOf(Function);
-    const usePolyfill =
-      typeof process === "object" &&
+    const usePolyfill = typeof process === "object" &&
       process.env &&
       process.env["REFLECT_METADATA_USE_MAP_POLYFILL"] === "true";
-    const _Map: typeof Map =
-      !usePolyfill &&
+    const _Map: typeof Map = !usePolyfill &&
       typeof Map === "function" &&
       typeof Map.prototype.entries === "function"
-        ? Map
-        : CreateMapPolyfill();
-    const _Set: typeof Set =
-      !usePolyfill &&
+      ? Map
+      : CreateMapPolyfill();
+    const _Set: typeof Set = !usePolyfill &&
       typeof Set === "function" &&
       typeof Set.prototype.entries === "function"
-        ? Set
-        : CreateSetPolyfill();
+      ? Set
+      : CreateSetPolyfill();
     const _WeakMap: typeof WeakMap =
       !usePolyfill && typeof WeakMap === "function"
         ? WeakMap
@@ -808,13 +806,13 @@ namespace Reflect {
       decorators: (PropertyDecorator | MethodDecorator)[],
       target: any,
       propertyKey: string | symbol,
-      attributes?: PropertyDescriptor | null
+      attributes?: PropertyDescriptor | null,
     ): PropertyDescriptor | undefined;
     function decorate(
       decorators: (PropertyDecorator | MethodDecorator)[],
       target: any,
       propertyKey: string | symbol,
-      attributes: PropertyDescriptor
+      attributes: PropertyDescriptor,
     ): PropertyDescriptor;
 
     /**
@@ -860,7 +858,7 @@ namespace Reflect {
       decorators: (ClassDecorator | MemberDecorator)[],
       target: any,
       propertyKey?: string | symbol,
-      attributes?: PropertyDescriptor | null
+      attributes?: PropertyDescriptor | null,
     ): PropertyDescriptor | Function | undefined {
       if (!IsUndefined(propertyKey)) {
         if (!IsArray(decorators)) throw new TypeError();
@@ -869,22 +867,23 @@ namespace Reflect {
           !IsObject(attributes) &&
           !IsUndefined(attributes) &&
           !IsNull(attributes)
-        )
+        ) {
           throw new TypeError();
+        }
         if (IsNull(attributes)) attributes = undefined;
         propertyKey = ToPropertyKey(propertyKey);
         return DecorateProperty(
-          <MemberDecorator[]>decorators,
+          <MemberDecorator[]> decorators,
           target,
           propertyKey,
-          attributes
+          attributes,
         );
       } else {
         if (!IsArray(decorators)) throw new TypeError();
         if (!IsConstructor(target)) throw new TypeError();
         return DecorateConstructor(
-          <ClassDecorator[]>decorators,
-          <Function>target
+          <ClassDecorator[]> decorators,
+          <Function> target,
         );
       }
     }
@@ -939,13 +938,14 @@ namespace Reflect {
       function decorator(target: any, propertyKey: string | symbol): void;
       function decorator(target: any, propertyKey?: string | symbol): void {
         if (!IsObject(target)) throw new TypeError();
-        if (!IsUndefined(propertyKey) && !IsPropertyKey(propertyKey))
+        if (!IsUndefined(propertyKey) && !IsPropertyKey(propertyKey)) {
           throw new TypeError();
+        }
         OrdinaryDefineOwnMetadata(
           metadataKey,
           metadataValue,
           target,
-          propertyKey
+          propertyKey,
         );
       }
       return decorator;
@@ -959,13 +959,13 @@ namespace Reflect {
     function defineMetadata(
       metadataKey: any,
       metadataValue: any,
-      target: any
+      target: any,
     ): void;
     function defineMetadata(
       metadataKey: any,
       metadataValue: any,
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): void;
 
     /**
@@ -1011,7 +1011,7 @@ namespace Reflect {
       metadataKey: any,
       metadataValue: any,
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): void {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1019,7 +1019,7 @@ namespace Reflect {
         metadataKey,
         metadataValue,
         target,
-        propertyKey
+        propertyKey,
       );
     }
 
@@ -1032,7 +1032,7 @@ namespace Reflect {
     function hasMetadata(
       metadataKey: any,
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): boolean;
 
     /**
@@ -1072,7 +1072,7 @@ namespace Reflect {
     function hasMetadata(
       metadataKey: any,
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): boolean {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1088,7 +1088,7 @@ namespace Reflect {
     function hasOwnMetadata(
       metadataKey: any,
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): boolean;
 
     /**
@@ -1128,7 +1128,7 @@ namespace Reflect {
     function hasOwnMetadata(
       metadataKey: any,
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): boolean {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1144,7 +1144,7 @@ namespace Reflect {
     function getMetadata(
       metadataKey: any,
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): any;
 
     /**
@@ -1184,7 +1184,7 @@ namespace Reflect {
     function getMetadata(
       metadataKey: any,
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): any {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1200,7 +1200,7 @@ namespace Reflect {
     function getOwnMetadata(
       metadataKey: any,
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): any;
 
     /**
@@ -1240,7 +1240,7 @@ namespace Reflect {
     function getOwnMetadata(
       metadataKey: any,
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): any {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1290,7 +1290,7 @@ namespace Reflect {
      */
     function getMetadataKeys(
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): any[] {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1305,7 +1305,7 @@ namespace Reflect {
     function getOwnMetadataKeys(target: any): any[];
     function getOwnMetadataKeys(
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): any[];
 
     /**
@@ -1343,7 +1343,7 @@ namespace Reflect {
      */
     function getOwnMetadataKeys(
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): any[] {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
@@ -1359,7 +1359,7 @@ namespace Reflect {
     function deleteMetadata(
       metadataKey: any,
       target: any,
-      propertyKey: string | symbol
+      propertyKey: string | symbol,
     ): boolean;
 
     /**
@@ -1399,14 +1399,14 @@ namespace Reflect {
     function deleteMetadata(
       metadataKey: any,
       target: any,
-      propertyKey?: string | symbol
+      propertyKey?: string | symbol,
     ): boolean {
       if (!IsObject(target)) throw new TypeError();
       if (!IsUndefined(propertyKey)) propertyKey = ToPropertyKey(propertyKey);
       const metadataMap = GetOrCreateMetadataMap(
         target,
         propertyKey,
-        /*Create*/ false
+        /*Create*/ false,
       );
       if (IsUndefined(metadataMap)) return false;
       if (!metadataMap.delete(metadataKey)) return false;
@@ -1422,14 +1422,14 @@ namespace Reflect {
 
     function DecorateConstructor(
       decorators: ClassDecorator[],
-      target: Function
+      target: Function,
     ): Function {
       for (let i = decorators.length - 1; i >= 0; --i) {
         const decorator = decorators[i];
         const decorated = decorator(target);
         if (!IsUndefined(decorated) && !IsNull(decorated)) {
           if (!IsConstructor(decorated)) throw new TypeError();
-          target = <Function>decorated;
+          target = <Function> decorated;
         }
       }
       return target;
@@ -1439,14 +1439,14 @@ namespace Reflect {
       decorators: MemberDecorator[],
       target: any,
       propertyKey: string | symbol,
-      descriptor: PropertyDescriptor | undefined
+      descriptor: PropertyDescriptor | undefined,
     ): PropertyDescriptor | undefined {
       for (let i = decorators.length - 1; i >= 0; --i) {
         const decorator = decorators[i];
         const decorated = decorator(target, propertyKey, descriptor);
         if (!IsUndefined(decorated) && !IsNull(decorated)) {
           if (!IsObject(decorated)) throw new TypeError();
-          descriptor = <PropertyDescriptor>decorated;
+          descriptor = <PropertyDescriptor> decorated;
         }
       }
       return descriptor;
@@ -1457,17 +1457,17 @@ namespace Reflect {
     function GetOrCreateMetadataMap(
       O: any,
       P: string | symbol | undefined,
-      Create: true
+      Create: true,
     ): Map<any, any>;
     function GetOrCreateMetadataMap(
       O: any,
       P: string | symbol | undefined,
-      Create: false
+      Create: false,
     ): Map<any, any> | undefined;
     function GetOrCreateMetadataMap(
       O: any,
       P: string | symbol | undefined,
-      Create: boolean
+      Create: boolean,
     ): Map<any, any> | undefined {
       let targetMetadata = Metadata.get(O);
       if (IsUndefined(targetMetadata)) {
@@ -1489,7 +1489,7 @@ namespace Reflect {
     function OrdinaryHasMetadata(
       MetadataKey: any,
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): boolean {
       const hasOwn = OrdinaryHasOwnMetadata(MetadataKey, O, P);
       if (hasOwn) return true;
@@ -1503,7 +1503,7 @@ namespace Reflect {
     function OrdinaryHasOwnMetadata(
       MetadataKey: any,
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): boolean {
       const metadataMap = GetOrCreateMetadataMap(O, P, /*Create*/ false);
       if (IsUndefined(metadataMap)) return false;
@@ -1515,7 +1515,7 @@ namespace Reflect {
     function OrdinaryGetMetadata(
       MetadataKey: any,
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): any {
       const hasOwn = OrdinaryHasOwnMetadata(MetadataKey, O, P);
       if (hasOwn) return OrdinaryGetOwnMetadata(MetadataKey, O, P);
@@ -1529,7 +1529,7 @@ namespace Reflect {
     function OrdinaryGetOwnMetadata(
       MetadataKey: any,
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): any {
       const metadataMap = GetOrCreateMetadataMap(O, P, /*Create*/ false);
       if (IsUndefined(metadataMap)) return undefined;
@@ -1542,7 +1542,7 @@ namespace Reflect {
       MetadataKey: any,
       MetadataValue: any,
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): void {
       const metadataMap = GetOrCreateMetadataMap(O, P, /*Create*/ true);
       metadataMap.set(MetadataKey, MetadataValue);
@@ -1552,7 +1552,7 @@ namespace Reflect {
     // https://rbuckton.github.io/reflect-metadata/#ordinarymetadatakeys
     function OrdinaryMetadataKeys(
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): any[] {
       const ownKeys = OrdinaryOwnMetadataKeys(O, P);
       const parent = OrdinaryGetPrototypeOf(O);
@@ -1583,7 +1583,7 @@ namespace Reflect {
     // https://rbuckton.github.io/reflect-metadata/#ordinaryownmetadatakeys
     function OrdinaryOwnMetadataKeys(
       O: any,
-      P: string | symbol | undefined
+      P: string | symbol | undefined,
     ): any[] {
       const keys: any[] = [];
       const metadataMap = GetOrCreateMetadataMap(O, P, /*Create*/ false);
@@ -1642,7 +1642,7 @@ namespace Reflect {
       String,
       Symbol,
       Number,
-      Object
+      Object,
     }
 
     // 6.1.1 The Undefined Type
@@ -1666,7 +1666,7 @@ namespace Reflect {
     // 6.1.7 The Object Type
     // https://tc39.github.io/ecma262/#sec-object-type
     function IsObject<
-      T
+      T,
     >(x: T | undefined | null | boolean | string | symbol | number): x is T {
       return typeof x === "object" ? x !== null : typeof x === "function";
     }
@@ -1678,7 +1678,7 @@ namespace Reflect {
     // https://tc39.github.io/ecma262/#sec-toprimitive
     function ToPrimitive(
       input: any,
-      PreferredType?: Tag
+      PreferredType?: Tag,
     ): undefined | null | boolean | string | symbol | number {
       switch (Type(input)) {
         case Tag.Undefined:
@@ -1694,12 +1694,11 @@ namespace Reflect {
         case Tag.Number:
           return input;
       }
-      const hint: "string" | "number" | "default" =
-        PreferredType === Tag.String
-          ? "string"
-          : PreferredType === Tag.Number
-          ? "number"
-          : "default";
+      const hint: "string" | "number" | "default" = PreferredType === Tag.String
+        ? "string"
+        : PreferredType === Tag.Number
+        ? "number"
+        : "default";
       const exoticToPrim = GetMethod(input, toPrimitiveSymbol);
       if (exoticToPrim !== undefined) {
         const result = exoticToPrim.call(input, hint);
@@ -1713,7 +1712,7 @@ namespace Reflect {
     // https://tc39.github.io/ecma262/#sec-ordinarytoprimitive
     function OrdinaryToPrimitive(
       O: any,
-      hint: "string" | "number"
+      hint: "string" | "number",
     ): undefined | null | boolean | string | symbol | number {
       if (hint === "string") {
         const toString = O.toString;
@@ -1866,8 +1865,9 @@ namespace Reflect {
       // If the super prototype is Object.prototype, null, or undefined, then we cannot determine the heritage.
       const prototype = O.prototype;
       const prototypeProto = prototype && Object.getPrototypeOf(prototype);
-      if (prototypeProto == null || prototypeProto === Object.prototype)
+      if (prototypeProto == null || prototypeProto === Object.prototype) {
         return proto;
+      }
 
       // If the constructor was not a function, then we cannot determine the heritage.
       const constructor = prototypeProto.constructor;
@@ -1888,7 +1888,7 @@ namespace Reflect {
       class MapIterator<
         K,
         V,
-        R extends K | V | [K, V]
+        R extends K | V | [K, V],
       > implements IterableIterator<R> {
         private _keys: K[];
         private _values: V[];
@@ -1910,7 +1910,7 @@ namespace Reflect {
           if (index >= 0 && index < this._keys.length) {
             const result = this._selector(
               this._keys[index],
-              this._values[index]
+              this._values[index],
             );
             if (index + 1 >= this._keys.length) {
               this._index = -1;
@@ -1921,7 +1921,7 @@ namespace Reflect {
             }
             return { value: result, done: false };
           }
-          return { value: <never>undefined, done: true };
+          return { value: <never> undefined, done: true };
         }
         throw(error: any): IteratorResult<R> {
           if (this._index >= 0) {
@@ -1937,7 +1937,7 @@ namespace Reflect {
             this._keys = arraySentinel;
             this._values = arraySentinel;
           }
-          return { value: <never>value, done: true };
+          return { value: <never> value, done: true };
         }
       }
 
@@ -2097,28 +2097,27 @@ namespace Reflect {
 
       function CreateUniqueKey(): string {
         let key: string;
-        do key = "@@WeakMap@@" + CreateUUID();
-        while (HashMap.has(keys, key));
+        do key = "@@WeakMap@@" + CreateUUID(); while (HashMap.has(keys, key));
         keys[key] = true;
         return key;
       }
 
       function GetOrCreateWeakMapTable<
-        K
+        K,
       >(target: K, create: true): HashMap<any>;
       function GetOrCreateWeakMapTable<
-        K
+        K,
       >(target: K, create: false): HashMap<any> | undefined;
       function GetOrCreateWeakMapTable<
-        K
+        K,
       >(target: K, create: boolean): HashMap<any> | undefined {
         if (!hasOwn.call(target, rootKey)) {
           if (!create) return undefined;
           Object.defineProperty(target, rootKey, {
-            value: HashMap.create<any>()
+            value: HashMap.create<any>(),
           });
         }
-        return (<any>target)[rootKey];
+        return (<any> target)[rootKey];
       }
 
       function FillRandomBytes(buffer: BufferLike, size: number): BufferLike {
@@ -2128,10 +2127,12 @@ namespace Reflect {
 
       function GenRandomBytes(size: number): BufferLike {
         if (typeof Uint8Array === "function") {
-          if (typeof crypto !== "undefined")
+          if (typeof crypto !== "undefined") {
             return crypto.getRandomValues(new Uint8Array(size)) as Uint8Array;
-          if (typeof msCrypto !== "undefined")
+          }
+          if (typeof msCrypto !== "undefined") {
             return msCrypto.getRandomValues(new Uint8Array(size)) as Uint8Array;
+          }
           return FillRandomBytes(new Uint8Array(size), size);
         }
         return FillRandomBytes(new Array(size), size);
@@ -2155,8 +2156,8 @@ namespace Reflect {
 
     // uses a heuristic used by v8 and chakra to force an object into dictionary mode.
     function MakeDictionary<T>(obj: T): T {
-      (<any>obj).__ = undefined;
-      delete (<any>obj).__;
+      (<any> obj).__ = undefined;
+      delete (<any> obj).__;
       return obj;
     }
   });

@@ -39,7 +39,7 @@ export class BaseModel {
 
   /** get primary key */
   get primaryKey(): FieldOptions | undefined {
-    return this.modelFields.find(field => field.primary);
+    return this.modelFields.find((field) => field.primary);
   }
 
   /** get defined fields list */
@@ -51,14 +51,14 @@ export class BaseModel {
           default: Defaults.CURRENT_TIMESTAMP,
           autoUpdate: true,
           name: "updated_at",
-          property: "updated_at"
+          property: "updated_at",
         },
         {
           type: FieldType.DATE,
           default: Defaults.CURRENT_TIMESTAMP,
           name: "created_at",
-          property: "created_at"
-        }
+          property: "created_at",
+        },
       ]
     );
   }
@@ -79,8 +79,10 @@ export class BaseModel {
     if (!data) return;
     const model: any = {};
     const fieldsMapping: any = {};
-    this.modelFields.map(field => (fieldsMapping[field.name] = field.property));
-    Object.keys(data).forEach(key => {
+    this.modelFields.map(
+      (field) => (fieldsMapping[field.name] = field.property)
+    );
+    Object.keys(data).forEach((key) => {
       const propertyName = fieldsMapping[key];
       model[propertyName || key] = data[key];
     });
@@ -95,9 +97,9 @@ export class BaseModel {
     const data: any = {};
     const fieldsMapping: any = {};
     this.modelFields.map(
-      field => (fieldsMapping[field.property!] = field.name)
+      (field) => (fieldsMapping[field.property!] = field.name),
     );
-    Object.keys(model).forEach(key => {
+    Object.keys(model).forEach((key) => {
       const name = fieldsMapping[key];
       data[name || key] = model[key as keyof ModelFields<this>];
     });
@@ -116,10 +118,10 @@ export class BaseModel {
     if (options.group) query.groupBy(...options.group);
     if (options.having) query.having(options.having);
     if (options.join) {
-      options.join.forEach(join => query.join(join));
+      options.join.forEach((join) => query.join(join));
     }
     if (options.limit) query.limit(...options.limit);
-    if (options.order) options.order.forEach(order => query.order(order));
+    if (options.order) options.order.forEach((order) => query.order(order));
     return query;
   }
 
@@ -128,11 +130,11 @@ export class BaseModel {
    * @param where conditions
    */
   async findOne(
-    options: Where | QueryOptions
+    options: Where | QueryOptions,
   ): Promise<ModelFields<this> | undefined> {
     if (options instanceof Where) {
       options = {
-        where: options
+        where: options,
       };
     }
     const result = await this.query(this.optionsToQuery(options).limit(0, 1));
@@ -147,7 +149,7 @@ export class BaseModel {
     const result = await this.execute(
       this.builder()
         .delete()
-        .where(where)
+        .where(where),
     );
     return result.affectedRows ?? 0;
   }
@@ -156,11 +158,11 @@ export class BaseModel {
   async findAll(options: Where | QueryOptions): Promise<ModelFields<this>[]> {
     if (options instanceof Where) {
       options = {
-        where: options
+        where: options,
       };
     }
     const result = await this.query(this.optionsToQuery(options));
-    return result.map(record => this.convertModel(record)!);
+    return result.map((record) => this.convertModel(record)!);
   }
 
   /** find one record by primary key */
@@ -179,7 +181,7 @@ export class BaseModel {
   /** update records by given conditions */
   async update(
     data: Partial<this>,
-    where?: Where
+    where?: Where,
   ): Promise<number | undefined> {
     if (
       !where &&
@@ -187,7 +189,7 @@ export class BaseModel {
       data[this.primaryKey.property as keyof this]
     ) {
       where = Where.field(this.primaryKey.name).eq(
-        data[this.primaryKey.property as keyof this]
+        data[this.primaryKey.property as keyof this],
       );
     }
     const query = this.builder()

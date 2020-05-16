@@ -7,7 +7,7 @@ import {
   Join,
   Model,
   Query,
-  Where
+  Where,
 } from "../mod.ts";
 import { clientTest } from "../test.ts";
 
@@ -17,7 +17,7 @@ class UserModel extends BaseModel {
     type: FieldType.INT,
     primary: true,
     length: 11,
-    autoIncrement: true
+    autoIncrement: true,
   })
   id!: number;
 
@@ -50,16 +50,16 @@ clientTest(async function testInsert() {
   assertEquals(
     await userModel.insert({
       nickName: "foo",
-      password: "bar"
+      password: "bar",
     }),
-    1
+    1,
   );
   assertEquals(
     await userModel.insert({
       nickName: "foo",
-      password: "bar"
+      password: "bar",
     }),
-    2
+    2,
   );
 });
 
@@ -68,9 +68,9 @@ clientTest(async function testUpdate() {
   assertEquals(
     await userModel.update({
       id,
-      password: "BAR"
+      password: "BAR",
     }),
-    1
+    1,
   );
   const user = await userModel.findById(id!);
   assertEquals(user, {
@@ -79,7 +79,7 @@ clientTest(async function testUpdate() {
     defaultVal: 0,
     id: 1,
     nickName: "foo",
-    password: "BAR"
+    password: "BAR",
   });
 });
 
@@ -90,8 +90,8 @@ clientTest(async function testFindOneByWhere() {
     Where.and(
       Where.field("id").eq(1),
       Where.field("password").isNull(),
-      Where.field("default_val").lt(10)
-    )
+      Where.field("default_val").lt(10),
+    ),
   );
   const topic = await topicModel.findById(1);
   assertEquals(user, {
@@ -100,7 +100,7 @@ clientTest(async function testFindOneByWhere() {
     password: null,
     defaultVal: 0,
     updated_at: user?.updated_at,
-    created_at: user?.created_at
+    created_at: user?.created_at,
   });
   assert(!!topic?.created_at);
   assertEquals(topic, {
@@ -108,7 +108,7 @@ clientTest(async function testFindOneByWhere() {
     created_at: topic?.created_at,
     id: 1,
     title: "foo",
-    userId: 1
+    userId: 1,
   });
 });
 
@@ -117,7 +117,7 @@ clientTest(async function testDelete() {
   await userModel.insert({ nickName: "bar" });
   await userModel.insert({ nickName: "noo" });
   const count = await userModel.delete(
-    Where.or(Where.field("id").eq(1), Where.field("nick_name").eq("noo"))
+    Where.or(Where.field("id").eq(1), Where.field("nick_name").eq("noo")),
   );
 
   assertEquals(count, 2);
@@ -130,13 +130,13 @@ clientTest(async function testFindOneByOptions() {
     where: Where.and(
       Where.field("id").eq(1),
       Where.field("password").isNull(),
-      Where.field("default_val").lt(10)
-    )
+      Where.field("default_val").lt(10),
+    ),
   });
   const topic = await topicModel.findOne({
     where: Where.field("topics.id").eq(1),
     fields: ["topics.*", "users.nick_name as userNickName"],
-    join: [Join.left("users").on("users.id", "topics.user_id")]
+    join: [Join.left("users").on("users.id", "topics.user_id")],
   });
   assert(!!topic?.created_at);
   assert(!!topic?.updated_at);
@@ -146,7 +146,7 @@ clientTest(async function testFindOneByOptions() {
     userId: 1,
     userNickName: "foo",
     updated_at: topic?.updated_at,
-    created_at: topic?.created_at
+    created_at: topic?.created_at,
   });
 });
 
@@ -154,7 +154,7 @@ clientTest(async function testTransactionFail() {
   let userId: number | undefined;
   let topicId: number | undefined;
   await assertThrowsAsync(async () => {
-    await dso.transaction<boolean>(async trans => {
+    await dso.transaction<boolean>(async (trans) => {
       const userModel = trans.getModel(UserModel);
       const topicModel = trans.getModel(TopicModel);
       userId = await userModel.insert({ nickName: "foo", password: "bar" });
@@ -174,7 +174,7 @@ clientTest(async function testTransactionFail() {
 clientTest(async function testTransactionSuccess() {
   let topicId: number | undefined;
   let userId: number | undefined;
-  const result = await dso.transaction<boolean>(async trans => {
+  const result = await dso.transaction<boolean>(async (trans) => {
     const userModel = trans.getModel(UserModel);
     const topicModel = trans.getModel(TopicModel);
     userId = await userModel.insert({ nickName: "foo", password: "bar" });

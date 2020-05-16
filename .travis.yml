@@ -6,4 +6,4 @@ before_install:
   - export PATH="/home/travis/.deno/bin:$PATH"
 
 script:
-  - deno -A -c tsconfig.json ./test.ts
+  - deno test --unstable --allow-net -c tsconfig.json test.ts
