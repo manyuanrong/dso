@@ -74,6 +74,24 @@ async function main() {
 
   // You can use the Model.findById method to get a record
   const user = await userModel.findById(1);
+
+  // You can use Where clause too to get a record. For more information on
+  // clauses such as join, order, etc. please consult:
+  // https://github.com/manyuanrong/sql-builder
+
+  // findOne + Where
+  const userWhere = await userModel.findOne(Where.from({ name: "user1" }));
+  
+  // findAll + Where
+  const userAll = await userModel.findAll(Where.from({ name: "user1" }));
+  
+  // findAll + expr like
+  const userLike = await userModel.findAll(Where.expr("name like 'user%'"));
+
+  console.log("Found user by id:", user);
+  console.log("Found user by where eq clause:", userWhere);
+  console.log("All users by where eq clause:", userAll);
+  console.log("All users by where like clause:", userLike);
 }
 main();
 ```
