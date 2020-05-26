@@ -198,7 +198,7 @@ Field type describes the following properties of a field
 
 | key           | type                                 | default value | desc                                                                                         |
 | ------------- | ------------------------------------ | ------------- | -------------------------------------------------------------------------------------------- |
-| type          | one of the [FieldTypes](#fieldtypes) | null          | types of database fields                                                                     |
+| type          | one of the [FieldTypes](https://github.com/manyuanrong/dso/blob/8d32e64489baaea053d09d64a378fa19b7331ecb/src/field.ts#L10) | null          | types of database fields                                                                     |
 | length        | number                               | unfixed       | field length                                                                                 |
 | primary       | boolean                              | false         | database primary key?                                                                        |
 | default       | any                                  | null          | default values for fields                                                                    |
