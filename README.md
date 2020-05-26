@@ -153,13 +153,13 @@ class UserModel extends BaseModel {
     length: 11,
     autoIncrement: true
   })
-  id: number;
+  id!: number;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  name: string;
+  name?: string;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  password: string;
+  password?: string;
 }
 
 export default const userModel = dso.define(UserModel);
