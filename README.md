@@ -24,19 +24,22 @@ import {
 // Define a database model
 @Model("users")
 class UserModel extends BaseModel {
+  // The ! operator is needed for primary key since it's never null 
   @Field({
     type: FieldType.INT,
     primary: true,
     length: 11,
     autoIncrement: true
   })
-  id: number;
+  id!: number; 
+  
+  // We use ! since name is never null 
+  @Field({ type: FieldType.STRING, length: 30, notNull: true }) 
+  name!: string;
 
-  @Field({ type: FieldType.STRING, length: 30 })
-  name: string;
-
-  @Field({ type: FieldType.STRING, length: 30 })
-  password: string;
+  // We use ? since password is nullable
+  @Field({ type: FieldType.STRING, length: 30 }) 
+  password?: string;
 }
 
 const userModel = dso.define(UserModel);
@@ -51,10 +54,17 @@ async function main() {
     db: "dbname"
   });
 
-  // When installing or initializing a database,
-  // you can use dso.sync to synchronize the database model to the database.
-
-  // await dso.sync(false);
+  /*  
+    When installing or initializing a database,
+    you can use dso.sync to synchronize the database model to the database.
+    Use false as the parameter if you want to sync only newly added models,
+    Use true as the parameter if you want to sync the whole defined models
+    to the database tables.
+    
+    == WARNING! ==
+    Using true as the parameter will reset your whole database! Use with caution.
+  */
+  await dso.sync(false);
 
   // You can add records using insert method
   const insertId = await userModel.insert({
@@ -64,9 +74,47 @@ async function main() {
 
   // You can use the Model.findById method to get a record
   const user = await userModel.findById(1);
+
+  // You can use Where clause too to get a record. For more information on
+  // clauses such as join, order, etc. please consult:
+  // https://github.com/manyuanrong/sql-builder
+
+  // findOne + Where
+  const userWhere = await userModel.findOne(Where.from({ name: "user1" }));
+  
+  // findAll + Where
+  const userAll = await userModel.findAll(Where.from({ name: "user1" }));
+  
+  // findAll + expr like
+  const userLike = await userModel.findAll(Where.expr("name like 'user%'"));
+
+  console.log("Found user by id:", user);
+  console.log("Found user by where eq clause:", userWhere);
+  console.log("All users by where eq clause:", userAll);
+  console.log("All users by where like clause:", userLike);
 }
 main();
 ```
+
+## Running
+Since this library needs to use Typescript Decorators and other features, a custom `tsconfig.json` needs to be added. Example config file can be found [here](https://github.com/manyuanrong/dso/blob/master/tsconfig.json), or just copy the contents below and create a new `tsconfig.json` file in your root directory.  
+  
+`tsconfig.json`
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "esnext"
+  }
+}
+```
+To run, use:
+```sh
+deno run --allow-net -c tsconfig.json main.ts
+```
+where `main.ts` is your Typescript file for Deno.
 
 ### Top Level API
 
@@ -105,13 +153,13 @@ class UserModel extends BaseModel {
     length: 11,
     autoIncrement: true
   })
-  id: number;
+  id!: number;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  name: string;
+  name?: string;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  password: string;
+  password?: string;
 }
 
 export default const userModel = dso.define(UserModel);
@@ -168,7 +216,7 @@ Field type describes the following properties of a field
 
 | key           | type                                 | default value | desc                                                                                         |
 | ------------- | ------------------------------------ | ------------- | -------------------------------------------------------------------------------------------- |
-| type          | one of the [FieldTypes](#fieldtypes) | null          | types of database fields                                                                     |
+| type          | one of the [FieldTypes](https://github.com/manyuanrong/dso/blob/8d32e64489baaea053d09d64a378fa19b7331ecb/src/field.ts#L10) | null          | types of database fields                                                                     |
 | length        | number                               | unfixed       | field length                                                                                 |
 | primary       | boolean                              | false         | database primary key?                                                                        |
 | default       | any                                  | null          | default values for fields                                                                    |
