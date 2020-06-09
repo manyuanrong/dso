@@ -26,7 +26,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           type = `TINYINT(1)`;
           break;
         case FieldType.TEXT:
-          type = `TEXT(${field.length})`;
+          type = `TEXT(${field.length || 65535})`;
           break;
         case FieldType.LONGTEXT: {
           type = `LONGTEXT`;
