@@ -210,7 +210,7 @@ export class BaseModel {
     const result = this.connection
       ? await this.connection.query(sql)
       : await dso.client.query(sql);
-    dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
+    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
 
@@ -224,7 +224,7 @@ export class BaseModel {
     const result = this.connection
       ? await this.connection.execute(sql)
       : await dso.client.execute(sql);
-    dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
+    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
 }
