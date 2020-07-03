@@ -74,7 +74,8 @@ async function main() {
   // You can add records using insert method
   const insertId = await userModel.insert({
     name: "user1",
-    password: "password"
+    password: "password",
+    phoneNumber: "08135539123"
   });
 
   // You can use the Model.findById method to get a record
