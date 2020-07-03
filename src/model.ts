@@ -42,6 +42,26 @@ export class BaseModel {
     return this.modelFields.find((field) => field.primary);
   }
 
+   /** get unique key */
+   get uniqueKey(): FieldOptions | undefined {
+    return this.modelFields.find((field) => field.unique);
+  }
+
+  /** get index key */
+  get indexKey(): FieldOptions | undefined {
+    return this.modelFields.find((field) => field.index);
+  }
+
+   /** get spatial key */
+   get spatialKey(): FieldOptions | undefined {
+    return this.modelFields.find((field) => field.spatial);
+  }
+
+    /** get spatial key */
+    get fullTextKey(): FieldOptions | undefined {
+      return this.modelFields.find((field) => field.fullText);
+    } 
+
   /** get defined fields list */
   get modelFields(): FieldOptions[] {
     return (

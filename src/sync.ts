@@ -62,6 +62,20 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     defs += `, PRIMARY KEY (${model.primaryKey.name})`;
   }
 
+  if (model.uniqueKey) {
+    defs += `, UNIQUE (${model.uniqueKey.name})`;
+  }
+  if (model.indexKey) {
+    defs += `, INDEX (${model.indexKey.name})`;
+  }
+
+  if (model.spatialKey) {
+    defs += `, SPATIAL INDEX (${model.spatialKey.name})`;
+  }
+
+  if (model.fullTextKey) {
+    defs += `, FULLTEXT (${model.fullTextKey.name})`;
+  }
   const sql = [
     "CREATE TABLE IF NOT EXISTS",
     model.modelName,
@@ -70,7 +84,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     ")",
     "ENGINE=InnoDB DEFAULT CHARSET=utf8;",
   ].join(" ");
-
+  console.log(sql);
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
   const result = await client.execute(sql);
   dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);

@@ -17,6 +17,7 @@ export enum FieldType {
   GeoPOINT,
 }
 
+
 /** Field Decorator */
 export function Field(options: Partial<FieldOptions> & { type: FieldType }) {
   return (target: BaseModel, property: string) => {
@@ -38,4 +39,8 @@ export interface FieldOptions {
   autoIncrement?: boolean;
   notNull?: boolean;
   autoUpdate?: boolean;
+  unique?: boolean;
+  spatial?: boolean;
+  fullText?: boolean;
+  index?: boolean;
 }
