@@ -84,7 +84,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     ")",
     "ENGINE=InnoDB DEFAULT CHARSET=utf8;",
   ].join(" ");
-  console.log(sql);
+  
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
   const result = await client.execute(sql);
   dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
