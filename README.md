@@ -16,6 +16,8 @@ import {
   dso,
   Field,
   FieldType,
+  Index,
+  IndexType,
   Join,
   Model,
   Where
@@ -38,13 +40,14 @@ class UserModel extends BaseModel {
 
   @Field({ type: FieldType.STRING, length: 30 })
   password: string;
-  
-  @Field({ 
-    type: FieldType.STRING, 
-    unique: true, 
-    length: 20})
-  phoneNumber?: string;
-}
+
+  // Index can be created [index/unique/spatial/fulltext] for each field
+  @Field({ type: FieldType.STRING, length: 30, unique: true })
+  email: string;
+
+  // Multi column index can be defined by decorated @Index
+  @Index({ type: IndexType.UNIQUE, columns: ["username","namespace"] })
+  public myUniqueIndex!: Index;
 }
 
 const userModel = dso.define(UserModel);
@@ -74,8 +77,7 @@ async function main() {
   // You can add records using insert method
   const insertId = await userModel.insert({
     name: "user1",
-    password: "password",
-    phoneNumber: "08135539123"
+    password: "password"
   });
 
   // You can use the Model.findById method to get a record
@@ -98,6 +100,7 @@ async function main() {
   console.log("Found user by where eq clause:", userWhere);
   console.log("All users by where eq clause:", userAll);
   console.log("All users by where like clause:", userLike);
+  console.log("User has these columns in index:", user.myUniqueIndex.columns);
 }
 main();
 ```
@@ -239,4 +242,16 @@ Field type describes the following properties of a field
 | unique        | boolean                              | false         | database unique index?  
 | spatial       | boolean                              | false         | database spatial index?  
 | fullText      | boolean                              | false         | database fullText index?  
-| index         | boolean                              | false         | database non unique index?  
+| index         | boolean                              | false         | database non unique index?
+
+
+#### Index
+Following types of an index are available
+
+| key           | multi column                          
+| ------------- | ------------------------------------ 
+| index         | true                                 
+| unique        | true                                 
+| spatial       | false                                
+| fulltext      | true                                 
+  
