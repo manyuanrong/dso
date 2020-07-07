@@ -29,6 +29,12 @@ class UserModel extends BaseModel {
 
   @Field({ type: FieldType.INT, default: 0 })
   defaultVal?: string;
+  
+  @Field({ 
+    type: FieldType.STRING, 
+    unique: true, 
+    length: 20})
+  phoneNumber?: string;
 }
 
 @Model("topics")
@@ -51,6 +57,7 @@ clientTest(async function testInsert() {
     await userModel.insert({
       nickName: "foo",
       password: "bar",
+      phoneNumber: "08135539123"
     }),
     1,
   );
@@ -58,13 +65,14 @@ clientTest(async function testInsert() {
     await userModel.insert({
       nickName: "foo",
       password: "bar",
+      phoneNumber: "08135539124"
     }),
     2,
   );
 });
 
 clientTest(async function testUpdate() {
-  const id: number | undefined = await userModel.insert({ nickName: "foo" });
+  const id: number | undefined = await userModel.insert({ nickName: "foo" , phoneNumber: "08135539123"});
   assertEquals(
     await userModel.update({
       id,
@@ -80,11 +88,12 @@ clientTest(async function testUpdate() {
     id: 1,
     nickName: "foo",
     password: "BAR",
+    phoneNumber: "08135539123"
   });
 });
 
 clientTest(async function testFindOneByWhere() {
-  await userModel.insert({ nickName: "foo" });
+  await userModel.insert({ nickName: "foo", phoneNumber: "08135539123" });
   await topicModel.insert({ title: "foo", userId: 1 });
   const user = await userModel.findOne(
     Where.and(
@@ -99,6 +108,7 @@ clientTest(async function testFindOneByWhere() {
     nickName: "foo",
     password: null,
     defaultVal: 0,
+    phoneNumber: "08135539123",
     updated_at: user?.updated_at,
     created_at: user?.created_at,
   });

@@ -31,15 +31,20 @@ class UserModel extends BaseModel {
     length: 11,
     autoIncrement: true
   })
-  id!: number; 
-  
-  // We use ! since name is never null 
-  @Field({ type: FieldType.STRING, length: 30, notNull: true }) 
-  name!: string;
+  id: number;
 
-  // We use ? since password is nullable
-  @Field({ type: FieldType.STRING, length: 30 }) 
-  password?: string;
+  @Field({ type: FieldType.STRING, length: 30 })
+  name: string;
+
+  @Field({ type: FieldType.STRING, length: 30 })
+  password: string;
+  
+  @Field({ 
+    type: FieldType.STRING, 
+    unique: true, 
+    length: 20})
+  phoneNumber?: string;
+}
 }
 
 const userModel = dso.define(UserModel);
@@ -69,7 +74,8 @@ async function main() {
   // You can add records using insert method
   const insertId = await userModel.insert({
     name: "user1",
-    password: "password"
+    password: "password",
+    phoneNumber: "08135539123"
   });
 
   // You can use the Model.findById method to get a record
@@ -159,7 +165,14 @@ class UserModel extends BaseModel {
   name?: string;
 
   @Field({ type: FieldType.STRING, length: 30 })
-  password?: string;
+  password: string;
+  
+  @Field({ 
+    type: FieldType.STRING, 
+    unique: true, 
+    length: 20})
+  phoneNumber?: string;
+}
 }
 
 export default const userModel = dso.define(UserModel);
@@ -194,7 +207,7 @@ const result = await dso.transaction<boolean>(async trans => {
   const userModel = trans.getModel(UserModel);
   const topicModel = trans.getModel(TopicModel);
 
-  userId = await userModel.insert({ nickName: "foo", password: "bar" });
+  userId = await userModel.insert({ nickName: "foo", password: "bar", phoneNumber: "08135539123" });
   topicId = await topicModel.insert({ title: "zoo", userId });
   return true;
 });
@@ -222,4 +235,8 @@ Field type describes the following properties of a field
 | default       | any                                  | null          | default values for fields                                                                    |
 | autoIncrement | boolean                              | false         | identify auto-increment fields. It can only be used for INT types                            |
 | notNull       | boolean                              | false         | identity fields can not be null                                                              |
-| autoUpdate    | boolean                              | false         | updated automatically according to the current timestamp. It can only be used for DATE types |
+| autoUpdate    | boolean                              | false         | updated automatically according to the current timestamp. It can only be used for DATE types
+| unique        | boolean                              | false         | database unique index?  
+| spatial       | boolean                              | false         | database spatial index?  
+| fullText      | boolean                              | false         | database fullText index?  
+| index         | boolean                              | false         | database non unique index?  
