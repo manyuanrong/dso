@@ -1,0 +1,25 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        deno: ["v1.2.1"]
+    name: Deno ${{ matrix.deno }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Deno
+        uses: denolib/setup-deno@v2
+        with:
+          deno-version: ${{ matrix.deno }}
+      - name: Check format
+        run: |
+          deno fmt --check
+      - name: Test
+        run: |
+          docker run --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=true -e MYSQL_ROOT_PASSWORD="" -p 3306:3306 -d mysql:8.0.21
+          sleep 10s
+          deno test -c tsconfig.json --allow-net
