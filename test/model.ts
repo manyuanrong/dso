@@ -29,11 +29,12 @@ class UserModel extends BaseModel {
 
   @Field({ type: FieldType.INT, default: 0 })
   defaultVal?: string;
-  
-  @Field({ 
-    type: FieldType.STRING, 
-    unique: true, 
-    length: 20})
+
+  @Field({
+    type: FieldType.STRING,
+    unique: true,
+    length: 20,
+  })
   phoneNumber?: string;
 }
 
@@ -57,7 +58,7 @@ clientTest(async function testInsert() {
     await userModel.insert({
       nickName: "foo",
       password: "bar",
-      phoneNumber: "08135539123"
+      phoneNumber: "08135539123",
     }),
     1,
   );
@@ -65,14 +66,16 @@ clientTest(async function testInsert() {
     await userModel.insert({
       nickName: "foo",
       password: "bar",
-      phoneNumber: "08135539124"
+      phoneNumber: "08135539124",
     }),
     2,
   );
 });
 
 clientTest(async function testUpdate() {
-  const id: number | undefined = await userModel.insert({ nickName: "foo" , phoneNumber: "08135539123"});
+  const id: number | undefined = await userModel.insert(
+    { nickName: "foo", phoneNumber: "08135539123" },
+  );
   assertEquals(
     await userModel.update({
       id,
@@ -88,7 +91,7 @@ clientTest(async function testUpdate() {
     id: 1,
     nickName: "foo",
     password: "BAR",
-    phoneNumber: "08135539123"
+    phoneNumber: "08135539123",
   });
 });
 

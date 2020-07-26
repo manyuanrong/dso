@@ -17,7 +17,6 @@ export enum FieldType {
   GeoPOINT,
 }
 
-
 /** Field Decorator */
 export function Field(options: Partial<FieldOptions> & { type: FieldType }) {
   return (target: BaseModel, property: string) => {
