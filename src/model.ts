@@ -1,7 +1,7 @@
 import { assert, Connection, Join, Order, Query, Where } from "../deps.ts";
 import { dso } from "./dso.ts";
-import {Defaults, FieldOptions, FieldType} from "./field.ts";
-import { Index, IndexType} from "./index.ts";
+import { Defaults, FieldOptions, FieldType } from "./field.ts";
+import { Index, IndexType } from "./index.ts";
 
 export interface QueryOptions {
   fields?: string[];
@@ -44,33 +44,36 @@ export class BaseModel {
   }
 
   /** Returns array of all available without primary key */
-  get columnIndexes(): {[key: number]: Array<FieldOptions>;} {
+  get columnIndexes(): { [key: number]: Array<FieldOptions> } {
     return {
       [IndexType.INDEX]: this.modelFields.filter((field) => field.index) || [],
-      [IndexType.UNIQUE]: this.modelFields.filter((field) => field.unique) || [],
-      [IndexType.SPATIAL]: this.modelFields.filter((field) => field.spatial) || [],
-      [IndexType.FULLTEXT]: this.modelFields.filter((field) => field.fullText) || []
+      [IndexType.UNIQUE]: this.modelFields.filter((field) => field.unique) ||
+        [],
+      [IndexType.SPATIAL]: this.modelFields.filter((field) => field.spatial) ||
+        [],
+      [IndexType.FULLTEXT]:
+        this.modelFields.filter((field) => field.fullText) || [],
     };
   }
 
   /** get defined fields list */
   get modelFields(): FieldOptions[] {
     return (
-        Reflect.getMetadata("model:fields", this) || [
-          {
-            type: FieldType.DATE,
-            default: Defaults.CURRENT_TIMESTAMP,
-            autoUpdate: true,
-            name: "updated_at",
-            property: "updated_at",
-          },
-          {
-            type: FieldType.DATE,
-            default: Defaults.CURRENT_TIMESTAMP,
-            name: "created_at",
-            property: "created_at",
-          },
-        ]
+      Reflect.getMetadata("model:fields", this) || [
+        {
+          type: FieldType.DATE,
+          default: Defaults.CURRENT_TIMESTAMP,
+          autoUpdate: true,
+          name: "updated_at",
+          property: "updated_at",
+        },
+        {
+          type: FieldType.DATE,
+          default: Defaults.CURRENT_TIMESTAMP,
+          name: "created_at",
+          property: "created_at",
+        },
+      ]
     );
   }
 
@@ -96,10 +99,12 @@ export class BaseModel {
     const model: any = {};
     const fieldsMapping: any = {};
     this.modelFields.map(
-        (field) => (fieldsMapping[field.name] = field.property)
+      (field) => (fieldsMapping[field.name] = field.property),
     );
     this.indexes.map(
-        (index) => { if (index.property) model[index.property] = index }
+      (index) => {
+        if (index.property) model[index.property] = index;
+      },
     );
     Object.keys(data).forEach((key) => {
       const propertyName = fieldsMapping[key];
@@ -116,7 +121,7 @@ export class BaseModel {
     const data: any = {};
     const fieldsMapping: any = {};
     this.modelFields.map(
-        (field) => (fieldsMapping[field.property!] = field.name),
+      (field) => (fieldsMapping[field.property!] = field.name),
     );
     Object.keys(model).forEach((key) => {
       const name = fieldsMapping[key];
@@ -149,7 +154,7 @@ export class BaseModel {
    * @param where conditions
    */
   async findOne(
-      options: Where | QueryOptions,
+    options: Where | QueryOptions,
   ): Promise<ModelFields<this> | undefined> {
     if (options instanceof Where) {
       options = {
@@ -166,9 +171,9 @@ export class BaseModel {
    */
   async delete(where: Where): Promise<number> {
     const result = await this.execute(
-        this.builder()
-            .delete()
-            .where(where),
+      this.builder()
+        .delete()
+        .where(where),
     );
     return result.affectedRows ?? 0;
   }
@@ -199,21 +204,21 @@ export class BaseModel {
 
   /** update records by given conditions */
   async update(
-      data: Partial<this>,
-      where?: Where,
+    data: Partial<this>,
+    where?: Where,
   ): Promise<number | undefined> {
     if (
-        !where &&
-        this.primaryKey &&
-        data[this.primaryKey.property as keyof this]
+      !where &&
+      this.primaryKey &&
+      data[this.primaryKey.property as keyof this]
     ) {
       where = Where.field(this.primaryKey.name).eq(
-          data[this.primaryKey.property as keyof this],
+        data[this.primaryKey.property as keyof this],
       );
     }
     const query = this.builder()
-        .update(this.convertObject(data))
-        .where(where ?? "");
+      .update(this.convertObject(data))
+      .where(where ?? "");
 
     const result = await this.execute(query);
     return result.affectedRows;
@@ -227,8 +232,8 @@ export class BaseModel {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
     const result = this.connection
-        ? await this.connection.query(sql)
-        : await dso.client.query(sql);
+      ? await this.connection.query(sql)
+      : await dso.client.query(sql);
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
@@ -241,8 +246,8 @@ export class BaseModel {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
     const result = this.connection
-        ? await this.connection.execute(sql)
-        : await dso.client.execute(sql);
+      ? await this.connection.execute(sql)
+      : await dso.client.execute(sql);
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
