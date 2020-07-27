@@ -14,10 +14,11 @@ jobs:
       mysql:
         image: mysql:8.0.21
         ports:
-          - 3306
+          - 3306:3306
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
           MYSQL_ROOT_PASSWORD: ""
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3 
 
     steps:
       - uses: actions/checkout@v2
