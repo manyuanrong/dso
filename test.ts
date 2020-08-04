@@ -43,11 +43,11 @@ async function main() {
 await main();
 
 const config2 = {
-  user: "thankgodukachukwu",
+  user: "postgres",
   database: "test_orm",
   hostname: "127.0.0.1",
   //password: "",
-  password: "test_orm",
+  password: "",
   port: 5432,
 };
 
