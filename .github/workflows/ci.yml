@@ -28,6 +28,8 @@ jobs:
         POSTGRES_USER: "thankgodukachukwu"
         POSTGRES_PASSWORD: "test_orm" 
         POSTGRES_DB: "test_orm"
+      sqlite:
+        image: sqlite3
       
 
     steps:
@@ -41,4 +43,4 @@ jobs:
           deno fmt --check
       - name: Test
         run: |
-          deno test -c tsconfig.json --allow-net
+          deno test --allow-net  --allow-read --allow-write -c tsconfig.json

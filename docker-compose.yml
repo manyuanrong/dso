@@ -16,3 +16,6 @@ services:
     POSTGRES_USER: "thankgodukachukwu"
     POSTGRES_PASSWORD: "test_orm" 
     POSTGRES_DB: "test_orm"
+  sqlite:
+    image: sqlite3
+    
