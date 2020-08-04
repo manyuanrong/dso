@@ -61,6 +61,40 @@ export interface Config extends Base {
 
 */
 
+const config: ClientConfig = {
+  hostname: "127.0.0.1",
+  port: 3306,
+  poolSize: 3, // optional
+  debug: false,
+  username: "root",
+  password: "",
+  db: "",
+};
+
+const mysqlConfig = {
+  type: "MYSQL",
+  clientConfig: { ...config, db: "dbname" },
+};
+
+const configPostgres = {
+  user: "username",
+  database: "dbname",
+  hostname: "127.0.0.1",
+  password: "",
+  port: 5432,
+};
+
+const postgresConfig = {
+  type: "POSTGRES",
+  clientConfig: configPostgres,
+};
+
+const sqliteConfig = {
+  type: "SQLITE",
+  clientConfig: { database: "test.db" },
+};
+
+
 async function main() {
   // The database must be created before linking
   await dso.connect(mysqlConfig);
