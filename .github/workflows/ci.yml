@@ -20,6 +20,16 @@ jobs:
           MYSQL_ROOT_PASSWORD: ""
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3 
 
+      postgres:
+       image: postgres:10.8
+       ports:
+        - 5432:5432
+       env:
+        POSTGRES_USER: "thankgodukachukwu"
+        POSTGRES_PASSWORD: "test_orm" 
+        POSTGRES_DB: "test_orm"
+      options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
       - name: Setup Deno

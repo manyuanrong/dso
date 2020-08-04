@@ -46,7 +46,8 @@ const config2 = {
   user: "thankgodukachukwu",
   database: "test_orm",
   hostname: "127.0.0.1",
-  password: "",
+  //password: "",
+  password: "test_orm",
   port: 5432,
 };
 

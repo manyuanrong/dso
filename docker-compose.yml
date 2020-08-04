@@ -8,3 +8,11 @@ services:
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "true"
       MYSQL_ROOT_PASSWORD: ""
+  postgres:
+   image: postgres:10.8
+   ports:
+    - 5432:5432
+   environment:
+    POSTGRES_USER: "thankgodukachukwu"
+    POSTGRES_PASSWORD: "test_orm" 
+    POSTGRES_DB: "test_orm"
