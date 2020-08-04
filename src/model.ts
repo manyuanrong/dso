@@ -1,7 +1,11 @@
-import { assert, Connection, Join, Order, Query, Where } from "../deps.ts";
+import { assert, Join, Order, Query, Where } from "../deps.ts";
 import { dso } from "./dso.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 import { Index, IndexType } from "./index.ts";
+import { replaceBackTick, rowsPostgres } from "../util.ts";
+import { PostgresClient } from "../PostgresClient.ts";
+import { SqliteClient } from "../SqliteClient.ts";
+import { Connection } from "../deps.ts";
 
 export interface QueryOptions {
   fields?: string[];
@@ -31,7 +35,7 @@ export class BaseModel {
   created_at?: Date;
   updated_at?: Date;
 
-  constructor(public connection?: Connection) {}
+  constructor(public connection?: Connection | PostgresClient | SqliteClient) {}
 
   /** get model name */
   get modelName(): string {
@@ -161,8 +165,25 @@ export class BaseModel {
         where: options,
       };
     }
-    const result = await this.query(this.optionsToQuery(options).limit(0, 1));
-    return this.convertModel(result[0]);
+    let result;
+    let resultSqlite: any;
+    let resultPostgres: any;
+    let converted: ModelFields<this> | undefined;
+    if (dso.configClientReturn.sqlite != null) {
+      resultSqlite = await this.querySqlite(this.optionsToQuery(options));
+      const resultArray = [...resultSqlite];
+      converted = this.convertModel(resultArray[0]);
+    } else if (dso.configClientReturn.postgres != null) {
+      resultPostgres = await this.queryPostgres(this.optionsToQuery(options));
+
+      converted = this.convertModel(rowsPostgres(resultPostgres)[0]);
+    } else {
+      result = await this.query(this.optionsToQuery(options).limit(0, 1));
+
+      converted = this.convertModel(result[0]);
+    }
+
+    return converted;
   }
 
   /**
@@ -170,12 +191,23 @@ export class BaseModel {
    * @param where
    */
   async delete(where: Where): Promise<number> {
-    const result = await this.execute(
-      this.builder()
-        .delete()
-        .where(where),
-    );
-    return result.affectedRows ?? 0;
+    const query = this.builder().delete().where(where);
+    let result: any;
+    let deleteCounts: number | undefined;
+    let resultPostgres: any;
+
+    if (dso.configClientReturn.sqlite != null) {
+      await this.executeQuerySqlite(query);
+      deleteCounts = dso.clientSqlite.changes;
+    } else if (dso.configClientReturn.postgres != null) {
+      resultPostgres = await this.executeQueryPostGres(query);
+      deleteCounts = parseInt(resultPostgres.rowCount);
+    } else {
+      result = await this.execute(query);
+      deleteCounts = result.affectedRows;
+    }
+
+    return deleteCounts ?? 0;
   }
 
   /** find all records by given conditions */
@@ -198,8 +230,42 @@ export class BaseModel {
   /** insert record */
   async insert(fields: Partial<this>): Promise<number | undefined> {
     const query = this.builder().insert(this.convertObject(fields));
-    const result = await this.execute(query);
-    return result.lastInsertId;
+
+    let result: any;
+    let idReturn: number;
+
+    if (dso.configClientReturn.sqlite != null) {
+      await this.executeQuerySqlite(query);
+      idReturn = dso.clientSqlite.lastInsertRowId;
+    } else {
+      result = await this.execute(query);
+      idReturn = result.lastInsertId;
+    }
+
+    return idReturn;
+  }
+
+  /** insert record */
+  async insertRowsAffected(fields: Partial<this>): Promise<number | undefined> {
+    const query = this.builder().insert(this.convertObject(fields));
+
+    let resultPostgres: any;
+    let result: any;
+
+    let updateCounts;
+
+    if (dso.configClientReturn.sqlite != null) {
+      await this.executeQuerySqlite(query);
+      updateCounts = dso.clientSqlite.changes;
+    } else if (dso.configClientReturn.postgres != null) {
+      resultPostgres = await this.executeQueryPostGres(query);
+      updateCounts = parseInt(resultPostgres.rowCount);
+    } else {
+      result = await this.execute(query);
+      updateCounts = result.affectedRows;
+    }
+
+    return updateCounts;
   }
 
   /** update records by given conditions */
@@ -220,8 +286,23 @@ export class BaseModel {
       .update(this.convertObject(data))
       .where(where ?? "");
 
-    const result = await this.execute(query);
-    return result.affectedRows;
+    let result: any;
+    let resultPostgres: any;
+
+    let updateCounts;
+
+    if (dso.configClientReturn.sqlite != null) {
+      await this.executeQuerySqlite(query);
+      updateCounts = dso.clientSqlite.changes;
+    } else if (dso.configClientReturn.postgres != null) {
+      resultPostgres = await this.executeQueryPostGres(query);
+      updateCounts = parseInt(resultPostgres.rowCount);
+    } else {
+      result = await this.execute(query);
+      updateCounts = result.affectedRows;
+    }
+
+    return updateCounts;
   }
 
   /**
@@ -239,6 +320,35 @@ export class BaseModel {
   }
 
   /**
+   * query custom
+   * @param query
+   */
+  async querySqlite(query: Query): Promise<any[]> {
+    const sql = query.build();
+    console.log(replaceBackTick(sql));
+    dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
+    const result: any = this.connection
+      ? await this.connection.query(replaceBackTick(sql))
+      : await dso.clientSqlite.query(replaceBackTick(sql)).asObjects();
+    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
+    return result;
+  }
+
+  /**
+   * query custom
+   * @param query
+   */
+  async queryPostgres(query: Query): Promise<any[]> {
+    const sql = query.build();
+    dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
+    const result: any = this.connection
+      ? await this.connection.query(replaceBackTick(sql))
+      : await dso.clientPostgres.query(replaceBackTick(sql));
+    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
+    return result;
+  }
+
+  /**
    * excute custom
    * @param query
    */
@@ -248,6 +358,41 @@ export class BaseModel {
     const result = this.connection
       ? await this.connection.execute(sql)
       : await dso.client.execute(sql);
+
+    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
+    return result;
+  }
+
+  /**
+  * excute custom
+  * @param query
+  */
+  async executeQueryPostGres(query: Query) {
+    const sql = query.build();
+
+    dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
+
+    const result = this.connection
+      ? await this.connection.query(replaceBackTick(sql))
+      : await dso.clientPostgres.query(replaceBackTick(sql));
+
+    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
+    return result;
+  }
+
+  /**
+  * excute custom
+  * @param query
+  */
+  async executeQuerySqlite(query: Query) {
+    const sql = query.build();
+    console.log(replaceBackTick(sql));
+    dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
+
+    const result = this.connection
+      ? await this.connection.query(replaceBackTick(sql))
+      : await dso.clientSqlite.query(replaceBackTick(sql));
+
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }

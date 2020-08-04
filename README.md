@@ -5,7 +5,9 @@
 ![GitHub release](https://img.shields.io/github/release/manyuanrong/dso.svg)
 ![(Deno)](https://img.shields.io/badge/deno-1.0.0-green.svg)
 
-`dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql)
+
+`dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql), [Deno-Postgres](https://github.com/deno-postgres/deno-postgres) and [Deno-Sqlite](https://github.com/dyedgreen/deno-sqlite).
+
 
 ### Example
 
@@ -51,16 +53,55 @@ class UserModel extends BaseModel {
 }
 
 const userModel = dso.define(UserModel);
+/*
+
+export interface Config extends Base {
+  type: type: string; // MySQl|Postgres|Sqlite
+  clientConfig?: ClientConfig | object; MySQL client Config or an object
+  client?: Client | PostgresClient | SqliteClient;
+}
+
+*/
+
+const config: ClientConfig = {
+  hostname: "127.0.0.1",
+  port: 3306,
+  poolSize: 3, // optional
+  debug: false,
+  username: "root",
+  password: "",
+  db: "",
+};
+
+const mysqlConfig = {
+  type: "MYSQL",
+  clientConfig: { ...config, db: "dbname" },
+};
+
+const configPostgres = {
+  user: "username",
+  database: "dbname",
+  hostname: "127.0.0.1",
+  password: "",
+  port: 5432,
+};
+
+const postgresConfig = {
+  type: "POSTGRES",
+  clientConfig: configPostgres,
+};
+
+const sqliteConfig = {
+  type: "SQLITE",
+  clientConfig: { database: "test.db" },
+};
+
 
 async function main() {
-  // The database must be created before linking
-  await dso.connect({
-    hostname: "127.0.0.1",
-    port: 3306,
-    username: "root",
-    password: "",
-    db: "dbname"
-  });
+  // The database must be created before linking with the configuration object
+  await dso.connect(mysqlConfig);
+  await dso.connect(postgresConfig);
+  await dso.connect(sqliteConfig);
 
   /*  
     When installing or initializing a database,
@@ -78,6 +119,14 @@ async function main() {
   const insertId = await userModel.insert({
     name: "user1",
     password: "password"
+  });
+
+  // You can add records using insertRowsAffected method (works for only MySQL, Postgres and Sqlite)
+  // Returns the number of rows inserted inserted
+  const insertId = await userModel.insertRowsAffected({
+    name: "user1",
+    password: "password",
+    phoneNumber: "08135539123"
   });
 
   // You can use the Model.findById method to get a record
@@ -138,6 +187,7 @@ dso.showQueryLog = true;
 #### dso.connect
 
 You need to use this method to link to the database before you can manipulate the database
+See the approprite configuration object specified earlier. Example below is for MySQL
 
 ```ts
 await dso.connect({
@@ -183,7 +233,8 @@ export default const userModel = dso.define(UserModel);
 // userModel.findById(...)
 // userModel.findAll(...)
 // userModel.findOne(...)
-// userModel.insert(...)
+// userModel.insert(...) // works for MySQL and Sqlite ONLY
+// userModel.insertRowsAffected(...)
 // userModel.update(...)
 // userModel.delete(...)
 ```
@@ -203,7 +254,8 @@ await dso.sync(force);
 
 Create and start a transaction.
 
-New `Model` instances must be obtained through `getModel(Model)`. Otherwise, it will not be controlled by transactions.
+New `Model` instances must be obtained through `getModel(Model)`. Otherwise, it will not be controlled by transactions. Transaction takes a second `driverType:string` parameter which can be
+"MYSQL"| "POSTGRES" | "SQLITE" (ignores capitalization). 
 
 ```ts
 const result = await dso.transaction<boolean>(async trans => {
@@ -213,7 +265,7 @@ const result = await dso.transaction<boolean>(async trans => {
   userId = await userModel.insert({ nickName: "foo", password: "bar", phoneNumber: "08135539123" });
   topicId = await topicModel.insert({ title: "zoo", userId });
   return true;
-});
+}, "MYSQL");
 ```
 
 ### Top Level Types

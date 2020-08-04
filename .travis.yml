@@ -1,9 +1,16 @@
 services:
   - mysql
+  - postgresql
+  - SQLITE3
+  
+  
 
 before_install:
   - curl -fsSL https://deno.land/x/install/install.sh | sh
   - export PATH="/home/travis/.deno/bin:$PATH"
 
+before_script:
+  - psql -c 'create database test_orm;' -U postgres
+
 script:
-  - deno test --unstable --allow-net -c tsconfig.json test.ts
+  - deno test --allow-net  --allow-read --allow-write -c tsconfig.json test.ts 

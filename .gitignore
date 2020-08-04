@@ -2,3 +2,5 @@ mysql.log
 package-lock.json
 .vscode
 node_modules
+test.db
+*.code-workspace

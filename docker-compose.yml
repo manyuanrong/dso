@@ -8,3 +8,14 @@ services:
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "true"
       MYSQL_ROOT_PASSWORD: ""
+  postgres:
+   image: postgres:10.8
+   ports:
+    - 5432:5432
+   environment:
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "" 
+    POSTGRES_DB: "test_orm"
+  sqlite:
+    image: keinos/sqlite3:latest
+    

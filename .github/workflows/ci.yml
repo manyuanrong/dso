@@ -20,6 +20,18 @@ jobs:
           MYSQL_ROOT_PASSWORD: ""
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3 
 
+      postgres:
+       image: postgres:11.5
+       ports:
+        - 5432:5432
+       env:
+        POSTGRES_USER: "postgres"
+        POSTGRES_PASSWORD: "" 
+        POSTGRES_DB: "test_orm"
+      sqlite:
+        image: keinos/sqlite3:latest
+      
+
     steps:
       - uses: actions/checkout@v2
       - name: Setup Deno
@@ -31,4 +43,4 @@ jobs:
           deno fmt --check
       - name: Test
         run: |
-          deno test -c tsconfig.json --allow-net
+          deno test --allow-net  --allow-read --allow-write -c tsconfig.json
