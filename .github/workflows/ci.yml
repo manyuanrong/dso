@@ -28,10 +28,6 @@ jobs:
         POSTGRES_USER: "thankgodukachukwu"
         POSTGRES_PASSWORD: "test_orm" 
         POSTGRES_DB: "test_orm"
-      options: >-
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       
 
     steps:
