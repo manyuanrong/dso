@@ -29,7 +29,7 @@ jobs:
         POSTGRES_PASSWORD: "test_orm" 
         POSTGRES_DB: "test_orm"
       sqlite:
-        image: sqlite3
+        image: keinos/sqlite3:latest
       
 
     steps:
