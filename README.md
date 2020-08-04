@@ -5,7 +5,9 @@
 ![GitHub release](https://img.shields.io/github/release/manyuanrong/dso.svg)
 ![(Deno)](https://img.shields.io/badge/deno-1.0.0-green.svg)
 
-`dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql)
+
+`dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql), [Deno-Postgres](https://github.com/deno-postgres/deno-postgres) and [Deno-Sqlite](https://github.com/dyedgreen/deno-sqlite).
+
 
 ### Example
 
@@ -96,7 +98,7 @@ const sqliteConfig = {
 
 
 async function main() {
-  // The database must be created before linking
+  // The database must be created before linking with the configuration object
   await dso.connect(mysqlConfig);
   await dso.connect(postgresConfig);
   await dso.connect(sqliteConfig);
