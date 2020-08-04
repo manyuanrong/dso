@@ -9,7 +9,9 @@ import {
   Query,
   Where,
 } from "../mod.ts";
-import { clientTest } from "../test.ts";
+import { clientTest, clientTestPostgres, clientTestSQLITE } from "../test.ts";
+
+/** deno test --allow-net  --allow-read --allow-write -c tsconfig.json */
 
 @Model("users")
 class UserModel extends BaseModel {
@@ -50,8 +52,8 @@ class TopicModel extends BaseModel {
   title?: string;
 }
 
-const userModel = dso.define(UserModel);
-const topicModel = dso.define(TopicModel);
+let userModel = dso.define(UserModel);
+let topicModel = dso.define(TopicModel);
 
 clientTest(async function testInsert() {
   assertEquals(
@@ -69,6 +71,41 @@ clientTest(async function testInsert() {
       phoneNumber: "08135539124",
     }),
     2,
+  );
+  assertEquals(
+    await userModel.insert({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135536124",
+    }),
+    3,
+  );
+});
+
+clientTest(async function testInsertRowsAffected() {
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539123",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539124",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135536124",
+    }),
+    1,
   );
 });
 
@@ -174,9 +211,9 @@ clientTest(async function testTransactionFail() {
       topicId = await topicModel.insert({ title: "zoo", userId });
       let user = await userModel.findById(userId!);
       assert(!!user);
-      await userModel.query(new Query().table("notexixts").select("*"));
+      await userModel.query(new Query().table("notexists").select("*"));
       return true;
-    });
+    }, "MYSQL");
   });
   const user = await userModel.findById(userId!);
   const topic = await topicModel.findById(topicId!);
@@ -195,7 +232,366 @@ clientTest(async function testTransactionSuccess() {
     let user = await userModel.findById(userId!);
     assert(!!user);
     return true;
+  }, "Mysql");
+  const user = await userModel.findById(userId!);
+  const topic = await userModel.findById(topicId!);
+  assertEquals(result, true);
+  assert(!!topic);
+  assert(!!user);
+});
+
+userModel = dso.define(UserModel);
+topicModel = dso.define(TopicModel);
+
+clientTestSQLITE(async function testInsert() {
+  assertEquals(
+    await userModel.insert({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539123",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insert({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539124",
+    }),
+    2,
+  );
+  assertEquals(
+    await userModel.insert({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539154",
+    }),
+    3,
+  );
+});
+
+clientTestSQLITE(async function testInsertRowsAffected() {
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539123",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539124",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539154",
+    }),
+    1,
+  );
+});
+
+clientTestSQLITE(async function testUpdate() {
+  const id: number | undefined = await userModel.insert(
+    { nickName: "foo", phoneNumber: "08135539123" },
+  );
+  console.log(id);
+  assertEquals(
+    await userModel.update({
+      id,
+      password: "BAR",
+    }),
+    1,
+  );
+  const user = await userModel.findById(id!);
+
+  assertEquals(user, {
+    updated_at: user?.updated_at,
+    created_at: user?.created_at,
+    defaultVal: 0,
+    id: 1,
+    nickName: "foo",
+    password: "BAR",
+    phoneNumber: "08135539123",
   });
+});
+
+clientTestSQLITE(async function testFindOneByWhere() {
+  await userModel.insert({ nickName: "foo", phoneNumber: "08135539123" });
+  await topicModel.insert({ title: "foo", userId: 1 });
+  const user = await userModel.findOne(
+    Where.and(
+      Where.field("id").eq(1),
+      Where.field("password").isNull(),
+      Where.field("default_val").lt(10),
+    ),
+  );
+  const topic = await topicModel.findById(1);
+  assertEquals(user, {
+    id: 1,
+    nickName: "foo",
+    password: null,
+    defaultVal: 0,
+    phoneNumber: "08135539123",
+    updated_at: user?.updated_at,
+    created_at: user?.created_at,
+  });
+  assert(!!topic?.created_at);
+  assertEquals(topic, {
+    updated_at: topic?.updated_at,
+    created_at: topic?.created_at,
+    id: 1,
+    title: "foo",
+    userId: 1,
+  });
+});
+
+clientTestSQLITE(async function testDelete() {
+  await userModel.insert({ nickName: "foo" });
+  await userModel.insert({ nickName: "bar" });
+  await userModel.insert({ nickName: "noo" });
+  const count = await userModel.delete(
+    Where.or(Where.field("id").eq(1), Where.field("nick_name").eq("noo")),
+  );
+
+  assertEquals(count, 2);
+});
+
+clientTestSQLITE(async function testFindOneByOptions() {
+  await userModel.insert({ nickName: "foo" });
+  await topicModel.insert({ title: "foo", userId: 1 });
+  const user = await userModel.findOne({
+    where: Where.and(
+      Where.field("id").eq(1),
+      Where.field("password").isNull(),
+      Where.field("default_val").lt(10),
+    ),
+  });
+  const topic = await topicModel.findOne({
+    where: Where.field("topics.id").eq(1),
+    fields: ["topics.*", "users.nick_name as userNickName"],
+    join: [Join.left("users").on("users.id", "topics.user_id")],
+  });
+  assert(!!topic?.created_at);
+  assert(!!topic?.updated_at);
+  assertEquals(topic, {
+    id: 1,
+    title: "foo",
+    userId: 1,
+    userNickName: "foo",
+    updated_at: topic?.updated_at,
+    created_at: topic?.created_at,
+  });
+});
+
+clientTestSQLITE(async function testTransactionSuccess() {
+  let topicId: number | undefined;
+  let userId: number | undefined;
+  const result = await dso.transaction<boolean>(async (trans) => {
+    const userModel = trans.getModel(UserModel);
+    const topicModel = trans.getModel(TopicModel);
+    userId = await userModel.insert(
+      { nickName: "foo", password: "bar" },
+    );
+    topicId = await topicModel.insert({ title: "zoo", userId });
+    let user = await userModel.findById(userId!);
+    assert(!!user);
+    return true;
+  }, "SQLITE");
+  const user = await userModel.findById(userId!);
+  const topic = await userModel.findById(topicId!);
+  assertEquals(result, true);
+  assert(!!topic);
+  assert(!!user);
+});
+
+clientTestSQLITE(async function testTransactionFail() {
+  let userId: number | undefined;
+  let topicId: number | undefined;
+  await assertThrowsAsync(async () => {
+    await dso.transaction<boolean>(async (trans) => {
+      const userModel = trans.getModel(UserModel);
+      const topicModel = trans.getModel(TopicModel);
+      userId = await userModel.insert({ nickName: "foo", password: "bar" });
+      topicId = await topicModel.insert({ title: "zoo", userId });
+      let user = await userModel.findById(userId!);
+      assert(!!user);
+      await userModel.query(new Query().table("notexists").select("*"));
+      return true;
+    }, "SQLITE");
+  });
+  const user = await userModel.findById(userId!);
+  const topic = await topicModel.findById(topicId!);
+  assert(!user);
+  assert(!topic);
+});
+
+userModel = dso.define(UserModel);
+topicModel = dso.define(TopicModel);
+
+clientTestPostgres(async function testInsert() {
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539123",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539124",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539154",
+    }),
+    1,
+  );
+});
+
+clientTestPostgres(async function testUpdate() {
+  const id: number | undefined = await userModel.insertRowsAffected(
+    { nickName: "foo", phoneNumber: "08135539123" },
+  );
+  assertEquals(
+    await userModel.update({
+      id,
+      password: "BAR",
+    }),
+    1,
+  );
+  const user = await userModel.findById(id!);
+  assertEquals(user, {
+    updated_at: user?.updated_at,
+    created_at: user?.created_at,
+    defaultVal: 0,
+    id: 1,
+    nickName: "foo",
+    password: "BAR",
+    phoneNumber: "08135539123",
+  });
+});
+
+clientTestPostgres(async function testFindOneByWhere() {
+  await userModel.insertRowsAffected(
+    { nickName: "foo", phoneNumber: "08135539123" },
+  );
+  await topicModel.insertRowsAffected({ title: "foo", userId: 1 });
+  const user = await userModel.findOne(
+    Where.and(
+      Where.field("id").eq(1),
+      Where.field("password").isNull(),
+      Where.field("default_val").lt(10),
+    ),
+  );
+  const topic = await topicModel.findById(1);
+  assertEquals(user, {
+    id: 1,
+    nickName: "foo",
+    password: null,
+    defaultVal: 0,
+    phoneNumber: "08135539123",
+    updated_at: user?.updated_at,
+    created_at: user?.created_at,
+  });
+  assert(!!topic?.created_at);
+  assertEquals(topic, {
+    updated_at: topic?.updated_at,
+    created_at: topic?.created_at,
+    id: 1,
+    title: "foo",
+    userId: 1,
+  });
+});
+
+clientTestPostgres(async function testDelete() {
+  await userModel.insertRowsAffected({ nickName: "foo" });
+  await userModel.insertRowsAffected({ nickName: "bar" });
+  await userModel.insertRowsAffected({ nickName: "noo" });
+  const count = await userModel.delete(
+    Where.or(Where.field("id").eq(1), Where.field("nick_name").eq("noo")),
+  );
+
+  assertEquals(count, 2);
+});
+
+clientTestPostgres(async function testFindOneByOptions() {
+  await userModel.insertRowsAffected({ nickName: "foo" });
+  await topicModel.insertRowsAffected({ title: "foo", userId: 1 });
+  const user = await userModel.findOne({
+    where: Where.and(
+      Where.field("id").eq(1),
+      Where.field("password").isNull(),
+      Where.field("default_val").lt(10),
+    ),
+  });
+  const topic = await topicModel.findOne({
+    where: Where.field("topics.id").eq(1),
+    fields: ["topics.*", "users.nick_name as userNickName"],
+    join: [Join.left("users").on("users.id", "topics.user_id")],
+  });
+
+  assert(!!topic?.created_at);
+  assert(!!topic?.updated_at);
+  assertEquals(topic, {
+    updated_at: topic?.updated_at,
+    created_at: topic?.created_at,
+    id: 1,
+    userId: 1,
+    title: "foo",
+    usernickname: "foo", // Postgres changes alia to small letters
+  });
+});
+clientTestPostgres(async function testTransactionFail() {
+  let userId: number | undefined;
+  let topicId: number | undefined;
+  await assertThrowsAsync(async () => {
+    await dso.transaction<boolean>(async (trans) => {
+      const userModel = trans.getModel(UserModel);
+      const topicModel = trans.getModel(TopicModel);
+      userId = await userModel.insertRowsAffected(
+        { nickName: "foo", password: "bar" },
+      );
+      topicId = await topicModel.insertRowsAffected({ title: "zoo", userId });
+      let user = await userModel.findById(userId!);
+      assert(!!user);
+      await userModel.query(new Query().table("notexists").select("*"));
+      return true;
+    }, "POSTGRES");
+  });
+  const user = await userModel.findById(userId!);
+  const topic = await topicModel.findById(topicId!);
+  assert(!user);
+  assert(!topic);
+});
+
+clientTestPostgres(async function testTransactionSuccess() {
+  let topicId: number | undefined;
+  let userId: number | undefined;
+  const result = await dso.transaction<boolean>(async (trans) => {
+    const userModel = trans.getModel(UserModel);
+    const topicModel = trans.getModel(TopicModel);
+    userId = await userModel.insertRowsAffected(
+      { nickName: "foo", password: "bar" },
+    );
+    topicId = await topicModel.insertRowsAffected({ title: "zoo", userId });
+    let user = await userModel.findById(userId!);
+    assert(!!user);
+    return true;
+  }, "POSTGRES");
   const user = await userModel.findById(userId!);
   const topic = await userModel.findById(topicId!);
   assertEquals(result, true);

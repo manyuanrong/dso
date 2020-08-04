@@ -3,10 +3,21 @@ import { dso } from "../mod.ts";
 import { FieldType, Defaults } from "./field.ts";
 import { BaseModel } from "./model.ts";
 import { columnIndexesList, Index } from "./index.ts";
+import { replaceBackTick } from "../util.ts";
+import { SqliteClient } from "../SqliteClient.ts";
+import { PostgresClient } from "../PostgresClient.ts";
 
-export async function sync(client: Client, model: BaseModel, force: boolean) {
+export async function sync(
+  client: Client | PostgresClient | SqliteClient,
+  model: BaseModel,
+  force: boolean,
+) {
   if (force) {
-    await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
+    if (client instanceof Client) {
+      await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
+    } else {
+      await client.query(`DROP TABLE IF EXISTS ${model.modelName}`);
+    }
   }
 
   let defs = model.modelFields
@@ -18,7 +29,17 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           type = `VARCHAR(${field.length || 255})`;
           break;
         case FieldType.INT:
-          type = `INT(${field.length || 11})`;
+          if (client instanceof Client) {
+            type = `INT(${field.length || 11})`;
+          } else if (client instanceof SqliteClient) {
+            type = `INTEGER `;
+          } else {
+            if (field.autoIncrement) {
+              type = `SERIAL`;
+            } else {
+              type = `INT`;
+            }
+          }
           break;
         case FieldType.DATE:
           type = `TIMESTAMP`;
@@ -38,6 +59,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           break;
         }
       }
+
       def += ` ${type}`;
       if (field.notNull) def += " NOT NULL";
       if (field.default != null) {
@@ -47,13 +69,21 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           def += ` DEFAULT ${field.default}`;
         }
       }
-      if (field.autoIncrement) def += " AUTO_INCREMENT";
+      if (client instanceof Client) {
+        if (field.autoIncrement) def += " AUTO_INCREMENT";
+      }
+
       if (field.autoUpdate) {
         assert(
           field.type === FieldType.DATE,
           "AutoUpdate only support Date field",
         );
-        def += ` ON UPDATE CURRENT_TIMESTAMP()`;
+
+        if (client instanceof Client) {
+          def += ` ON UPDATE CURRENT_TIMESTAMP()`;
+        } else {
+          // not yet supported def +=  ON UPDATE CURRENT_TIMESTAMP();
+        }
       }
       return def;
     })
@@ -76,17 +106,36 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     defs += `, ${columnIndexesList[index.type]} (${index.columns.join(", ")})`;
   });
 
-  const sql = [
-    "CREATE TABLE IF NOT EXISTS",
-    model.modelName,
-    "(",
-    defs,
-    ")",
-    "ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-  ].join(" ");
+  let sql;
+
+  if (client instanceof Client) {
+    sql = [
+      "CREATE TABLE IF NOT EXISTS",
+      model.modelName,
+      "(",
+      defs,
+      ")",
+      "ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+    ].join(" ");
+  } else {
+    sql = [
+      "CREATE TABLE IF NOT EXISTS",
+      model.modelName,
+      "(",
+      defs,
+      ");",
+    ].join(" ");
+    console.log(sql);
+  }
   console.log(sql);
 
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
-  const result = await client.execute(sql);
+  let result;
+  if (client instanceof Client) {
+    result = await client.execute(sql);
+  } else {
+    result = await client.query(replaceBackTick(sql));
+  }
+
   dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
 }
