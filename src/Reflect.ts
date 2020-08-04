@@ -53,7 +53,7 @@ namespace Reflect {
   }
 
   interface MapConstructor {
-    new (): Map<any, any>;
+    new(): Map<any, any>;
     new <K, V>(): Map<K, V>;
     prototype: Map<any, any>;
   }
@@ -70,7 +70,7 @@ namespace Reflect {
   }
 
   interface SetConstructor {
-    new (): Set<any>;
+    new(): Set<any>;
     new <T>(): Set<T>;
     prototype: Set<any>;
   }
@@ -84,7 +84,7 @@ namespace Reflect {
   }
 
   interface WeakMapConstructor {
-    new (): WeakMap<any, any>;
+    new(): WeakMap<any, any>;
     new <K, V>(): WeakMap<K, V>;
     prototype: WeakMap<any, any>;
   }
@@ -702,10 +702,10 @@ namespace Reflect {
     const root = typeof global === "object"
       ? global
       : typeof self === "object"
-      ? self
-      : typeof this === "object"
-      ? this
-      : Function("return this;")();
+        ? self
+        : typeof this === "object"
+          ? this
+          : Function("return this;")();
 
     let exporter = makeExporter(Reflect);
     if (typeof root.Reflect === "undefined") {
@@ -759,8 +759,8 @@ namespace Reflect {
       create: supportsCreate
         ? <V>() => MakeDictionary(Object.create(null) as HashMap<V>)
         : supportsProto
-        ? <V>() => MakeDictionary({ __proto__: null as any } as HashMap<V>)
-        : <V>() => MakeDictionary({} as HashMap<V>),
+          ? <V>() => MakeDictionary({ __proto__: null as any } as HashMap<V>)
+          : <V>() => MakeDictionary({} as HashMap<V>),
 
       has: downLevel
         ? <V>(map: HashMap<V>, key: string | number | symbol) =>
@@ -780,13 +780,13 @@ namespace Reflect {
       process.env &&
       process.env["REFLECT_METADATA_USE_MAP_POLYFILL"] === "true";
     const _Map: typeof Map = !usePolyfill &&
-      typeof Map === "function" &&
-      typeof Map.prototype.entries === "function"
+        typeof Map === "function" &&
+        typeof Map.prototype.entries === "function"
       ? Map
       : CreateMapPolyfill();
     const _Set: typeof Set = !usePolyfill &&
-      typeof Set === "function" &&
-      typeof Set.prototype.entries === "function"
+        typeof Set === "function" &&
+        typeof Set.prototype.entries === "function"
       ? Set
       : CreateSetPolyfill();
     const _WeakMap: typeof WeakMap =
@@ -873,7 +873,7 @@ namespace Reflect {
         if (IsNull(attributes)) attributes = undefined;
         propertyKey = ToPropertyKey(propertyKey);
         return DecorateProperty(
-          <MemberDecorator[]> decorators,
+          <MemberDecorator[]>decorators,
           target,
           propertyKey,
           attributes,
@@ -882,8 +882,8 @@ namespace Reflect {
         if (!IsArray(decorators)) throw new TypeError();
         if (!IsConstructor(target)) throw new TypeError();
         return DecorateConstructor(
-          <ClassDecorator[]> decorators,
-          <Function> target,
+          <ClassDecorator[]>decorators,
+          <Function>target,
         );
       }
     }
@@ -1429,7 +1429,7 @@ namespace Reflect {
         const decorated = decorator(target);
         if (!IsUndefined(decorated) && !IsNull(decorated)) {
           if (!IsConstructor(decorated)) throw new TypeError();
-          target = <Function> decorated;
+          target = <Function>decorated;
         }
       }
       return target;
@@ -1446,7 +1446,7 @@ namespace Reflect {
         const decorated = decorator(target, propertyKey, descriptor);
         if (!IsUndefined(decorated) && !IsNull(decorated)) {
           if (!IsObject(decorated)) throw new TypeError();
-          descriptor = <PropertyDescriptor> decorated;
+          descriptor = <PropertyDescriptor>decorated;
         }
       }
       return descriptor;
@@ -1667,7 +1667,7 @@ namespace Reflect {
     // https://tc39.github.io/ecma262/#sec-object-type
     function IsObject<
       T,
-    >(x: T | undefined | null | boolean | string | symbol | number): x is T {
+      >(x: T | undefined | null | boolean | string | symbol | number): x is T {
       return typeof x === "object" ? x !== null : typeof x === "function";
     }
 
@@ -1697,8 +1697,8 @@ namespace Reflect {
       const hint: "string" | "number" | "default" = PreferredType === Tag.String
         ? "string"
         : PreferredType === Tag.Number
-        ? "number"
-        : "default";
+          ? "number"
+          : "default";
       const exoticToPrim = GetMethod(input, toPrimitiveSymbol);
       if (exoticToPrim !== undefined) {
         const result = exoticToPrim.call(input, hint);
@@ -1769,8 +1769,8 @@ namespace Reflect {
       return Array.isArray
         ? Array.isArray(argument)
         : argument instanceof Object
-        ? argument instanceof Array
-        : Object.prototype.toString.call(argument) === "[object Array]";
+          ? argument instanceof Array
+          : Object.prototype.toString.call(argument) === "[object Array]";
     }
 
     // 7.2.3 IsCallable(argument)
@@ -1889,7 +1889,7 @@ namespace Reflect {
         K,
         V,
         R extends K | V | [K, V],
-      > implements IterableIterator<R> {
+        > implements IterableIterator<R> {
         private _keys: K[];
         private _values: V[];
         private _index = 0;
@@ -1921,7 +1921,7 @@ namespace Reflect {
             }
             return { value: result, done: false };
           }
-          return { value: <never> undefined, done: true };
+          return { value: <never>undefined, done: true };
         }
         throw(error: any): IteratorResult<R> {
           if (this._index >= 0) {
@@ -1937,7 +1937,7 @@ namespace Reflect {
             this._keys = arraySentinel;
             this._values = arraySentinel;
           }
-          return { value: <never> value, done: true };
+          return { value: <never>value, done: true };
         }
       }
 
@@ -2104,20 +2104,20 @@ namespace Reflect {
 
       function GetOrCreateWeakMapTable<
         K,
-      >(target: K, create: true): HashMap<any>;
+        >(target: K, create: true): HashMap<any>;
       function GetOrCreateWeakMapTable<
         K,
-      >(target: K, create: false): HashMap<any> | undefined;
+        >(target: K, create: false): HashMap<any> | undefined;
       function GetOrCreateWeakMapTable<
         K,
-      >(target: K, create: boolean): HashMap<any> | undefined {
+        >(target: K, create: boolean): HashMap<any> | undefined {
         if (!hasOwn.call(target, rootKey)) {
           if (!create) return undefined;
           Object.defineProperty(target, rootKey, {
             value: HashMap.create<any>(),
           });
         }
-        return (<any> target)[rootKey];
+        return (<any>target)[rootKey];
       }
 
       function FillRandomBytes(buffer: BufferLike, size: number): BufferLike {
@@ -2156,8 +2156,8 @@ namespace Reflect {
 
     // uses a heuristic used by v8 and chakra to force an object into dictionary mode.
     function MakeDictionary<T>(obj: T): T {
-      (<any> obj).__ = undefined;
-      delete (<any> obj).__;
+      (<any>obj).__ = undefined;
+      delete (<any>obj).__;
       return obj;
     }
   });
