@@ -16,12 +16,13 @@ import {
   dso,
   Field,
   FieldType,
+  CharsetType,
   Index,
   IndexType,
   Join,
   Model,
   Where
-} from "https://deno.land/x/dso@v1.0.0/mod.ts"; import {CharsetType} from "./charset";
+} from "https://deno.land/x/dso@v1.0.0/mod.ts";
 
 // Define a database model
 @Model("users")

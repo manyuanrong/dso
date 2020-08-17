@@ -4,13 +4,13 @@ import {
   dso,
   Field,
   FieldType,
+  CharsetType,
   Join,
   Model,
   Query,
   Where,
 } from "../mod.ts";
 import { clientTest } from "../test.ts";
-import { CharsetType } from "../src/charset.ts";
 
 @Model("users")
 class UserModel extends BaseModel {
