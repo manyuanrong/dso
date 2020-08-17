@@ -1,8 +1,8 @@
-import {assert, Connection, Join, Order, Query, Where} from "../deps.ts";
-import {dso} from "./dso.ts";
-import {Defaults, FieldOptions, FieldType} from "./field.ts";
-import {Index, IndexType} from "./index.ts";
-import {CharsetType} from "./charset.ts";
+import { assert, Connection, Join, Order, Query, Where } from "../deps.ts";
+import { dso } from "./dso.ts";
+import { Defaults, FieldOptions, FieldType } from "./field.ts";
+import { Index, IndexType } from "./index.ts";
+import { CharsetType } from "./charset.ts";
 
 export interface QueryOptions {
   fields?: string[];

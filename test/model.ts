@@ -1,7 +1,16 @@
-import {assert, assertEquals, assertThrowsAsync} from "../deps.ts";
-import {BaseModel, dso, Field, FieldType, Join, Model, Query, Where,} from "../mod.ts";
-import {clientTest} from "../test.ts";
-import {CharsetType} from "../src/charset.ts";
+import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
+import {
+  BaseModel,
+  dso,
+  Field,
+  FieldType,
+  Join,
+  Model,
+  Query,
+  Where,
+} from "../mod.ts";
+import { clientTest } from "../test.ts";
+import { CharsetType } from "../src/charset.ts";
 
 @Model("users")
 class UserModel extends BaseModel {
@@ -171,13 +180,18 @@ clientTest(async function testFindOneByOptions() {
 
 clientTest(async function testCharsetsFail() {
   await assertThrowsAsync(
-      () => charsetsModel.insert({ czechName: "独角兽", chineseName: "jednorožec" }) as Promise<void>
+    () =>
+      charsetsModel.insert(
+        { czechName: "独角兽", chineseName: "jednorožec" },
+      ) as Promise<void>,
   );
 });
 
 clientTest(async function testCharsetsSuccess() {
-  const id = await charsetsModel.insert({ czechName: "jednorožec", chineseName: "独角兽" });
-  assertEquals(id,1);
+  const id = await charsetsModel.insert(
+    { czechName: "jednorožec", chineseName: "独角兽" },
+  );
+  assertEquals(id, 1);
 });
 
 clientTest(async function testTransactionFail() {

@@ -39,7 +39,7 @@ export interface FieldOptions {
   autoIncrement?: boolean;
   notNull?: boolean;
   autoUpdate?: boolean;
-  charset?: CharsetType,
+  charset?: CharsetType;
   unique?: boolean;
   spatial?: boolean;
   fullText?: boolean;

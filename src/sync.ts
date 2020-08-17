@@ -3,7 +3,7 @@ import { dso } from "../mod.ts";
 import { FieldType, Defaults } from "./field.ts";
 import { BaseModel } from "./model.ts";
 import { columnIndexesList, Index } from "./index.ts";
-import {charsetList} from "./charset.ts";
+import { charsetList } from "./charset.ts";
 
 export async function sync(client: Client, model: BaseModel, force: boolean) {
   if (force) {
