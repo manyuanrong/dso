@@ -1,15 +1,7 @@
-import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
-import {
-  BaseModel,
-  dso,
-  Field,
-  FieldType,
-  Join,
-  Model,
-  Query,
-  Where,
-} from "../mod.ts";
-import { clientTest } from "../test.ts";
+import {assert, assertEquals, assertThrowsAsync} from "../deps.ts";
+import {BaseModel, dso, Field, FieldType, Join, Model, Query, Where,} from "../mod.ts";
+import {clientTest} from "../test.ts";
+import {CharsetType} from "../src/charset.ts";
 
 @Model("users")
 class UserModel extends BaseModel {
@@ -29,11 +21,12 @@ class UserModel extends BaseModel {
 
   @Field({ type: FieldType.INT, default: 0 })
   defaultVal?: string;
-  
-  @Field({ 
-    type: FieldType.STRING, 
-    unique: true, 
-    length: 20})
+
+  @Field({
+    type: FieldType.STRING,
+    unique: true,
+    length: 20,
+  })
   phoneNumber?: string;
 }
 
@@ -49,15 +42,29 @@ class TopicModel extends BaseModel {
   title?: string;
 }
 
+@Model("charsets")
+class CharsetsModel extends BaseModel {
+  charset = CharsetType.utf8mb4;
+  @Field({ type: FieldType.INT, autoIncrement: true, primary: true })
+  id!: number;
+
+  @Field({ type: FieldType.STRING, charset: CharsetType.utf8 })
+  czechName?: string;
+
+  @Field({ type: FieldType.STRING, charset: CharsetType.gb2312 })
+  chineseName?: string;
+}
+
 const userModel = dso.define(UserModel);
 const topicModel = dso.define(TopicModel);
+const charsetsModel = dso.define(CharsetsModel);
 
 clientTest(async function testInsert() {
   assertEquals(
     await userModel.insert({
       nickName: "foo",
       password: "bar",
-      phoneNumber: "08135539123"
+      phoneNumber: "08135539123",
     }),
     1,
   );
@@ -65,14 +72,16 @@ clientTest(async function testInsert() {
     await userModel.insert({
       nickName: "foo",
       password: "bar",
-      phoneNumber: "08135539124"
+      phoneNumber: "08135539124",
     }),
     2,
   );
 });
 
 clientTest(async function testUpdate() {
-  const id: number | undefined = await userModel.insert({ nickName: "foo" , phoneNumber: "08135539123"});
+  const id: number | undefined = await userModel.insert(
+    { nickName: "foo", phoneNumber: "08135539123" },
+  );
   assertEquals(
     await userModel.update({
       id,
@@ -88,7 +97,7 @@ clientTest(async function testUpdate() {
     id: 1,
     nickName: "foo",
     password: "BAR",
-    phoneNumber: "08135539123"
+    phoneNumber: "08135539123",
   });
 });
 
@@ -158,6 +167,17 @@ clientTest(async function testFindOneByOptions() {
     updated_at: topic?.updated_at,
     created_at: topic?.created_at,
   });
+});
+
+clientTest(async function testCharsetsFail() {
+  await assertThrowsAsync(
+      () => charsetsModel.insert({ czechName: "独角兽", chineseName: "jednorožec" }) as Promise<void>
+  );
+});
+
+clientTest(async function testCharsetsSuccess() {
+  const id = await charsetsModel.insert({ czechName: "jednorožec", chineseName: "独角兽" });
+  assertEquals(id,1);
 });
 
 clientTest(async function testTransactionFail() {

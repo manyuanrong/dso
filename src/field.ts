@@ -1,5 +1,6 @@
 import { BaseModel } from "./model.ts";
 import { camel2line } from "./util.ts";
+import { CharsetType } from "./charset.ts";
 
 export enum Defaults {
   CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP",
@@ -16,7 +17,6 @@ export enum FieldType {
   LONGTEXT,
   GeoPOINT,
 }
-
 
 /** Field Decorator */
 export function Field(options: Partial<FieldOptions> & { type: FieldType }) {
@@ -39,6 +39,7 @@ export interface FieldOptions {
   autoIncrement?: boolean;
   notNull?: boolean;
   autoUpdate?: boolean;
+  charset?: CharsetType,
   unique?: boolean;
   spatial?: boolean;
   fullText?: boolean;
