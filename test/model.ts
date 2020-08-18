@@ -4,6 +4,7 @@ import {
   dso,
   Field,
   FieldType,
+  CharsetType,
   Join,
   Model,
   Query,
@@ -50,8 +51,22 @@ class TopicModel extends BaseModel {
   title?: string;
 }
 
+@Model("charsets")
+class CharsetsModel extends BaseModel {
+  charset = CharsetType.utf8mb4;
+  @Field({ type: FieldType.INT, autoIncrement: true, primary: true })
+  id!: number;
+
+  @Field({ type: FieldType.STRING, charset: CharsetType.utf8 })
+  czechName?: string;
+
+  @Field({ type: FieldType.STRING, charset: CharsetType.gb2312 })
+  chineseName?: string;
+}
+
 const userModel = dso.define(UserModel);
 const topicModel = dso.define(TopicModel);
+const charsetsModel = dso.define(CharsetsModel);
 
 clientTest(async function testInsert() {
   assertEquals(
@@ -161,6 +176,22 @@ clientTest(async function testFindOneByOptions() {
     updated_at: topic?.updated_at,
     created_at: topic?.created_at,
   });
+});
+
+clientTest(async function testCharsetsFail() {
+  await assertThrowsAsync(
+    () =>
+      charsetsModel.insert(
+        { czechName: "独角兽", chineseName: "jednorožec" },
+      ) as Promise<void>,
+  );
+});
+
+clientTest(async function testCharsetsSuccess() {
+  const id = await charsetsModel.insert(
+    { czechName: "jednorožec", chineseName: "独角兽" },
+  );
+  assertEquals(id, 1);
 });
 
 clientTest(async function testTransactionFail() {

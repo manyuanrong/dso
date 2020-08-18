@@ -2,6 +2,7 @@ import { assert, Connection, Join, Order, Query, Where } from "../deps.ts";
 import { dso } from "./dso.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 import { Index, IndexType } from "./index.ts";
+import { CharsetType } from "./charset.ts";
 
 export interface QueryOptions {
   fields?: string[];
@@ -30,6 +31,7 @@ export type ModelFields<T> = Partial<Omit<T, keyof BaseModel>> & {
 export class BaseModel {
   created_at?: Date;
   updated_at?: Date;
+  charset: CharsetType = CharsetType.utf8;
 
   constructor(public connection?: Connection) {}
 

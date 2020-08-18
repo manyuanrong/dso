@@ -3,6 +3,7 @@ import { dso } from "../mod.ts";
 import { FieldType, Defaults } from "./field.ts";
 import { BaseModel } from "./model.ts";
 import { columnIndexesList, Index } from "./index.ts";
+import { charsetList } from "./charset.ts";
 
 export async function sync(client: Client, model: BaseModel, force: boolean) {
   if (force) {
@@ -39,6 +40,9 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
         }
       }
       def += ` ${type}`;
+      if (field.charset) {
+        def += ` CHARACTER SET ${charsetList[field.charset]}`;
+      }
       if (field.notNull) def += " NOT NULL";
       if (field.default != null) {
         if (field.default === Defaults.NULL) {
@@ -82,7 +86,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     "(",
     defs,
     ")",
-    "ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+    `ENGINE=InnoDB DEFAULT CHARSET=${charsetList[model.charset]};`,
   ].join(" ");
   console.log(sql);
 
