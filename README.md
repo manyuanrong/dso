@@ -18,6 +18,7 @@ import {
   dso,
   Field,
   FieldType,
+  CharsetType,
   Index,
   IndexType,
   Join,
@@ -28,6 +29,9 @@ import {
 // Define a database model
 @Model("users")
 class UserModel extends BaseModel {
+  // Character set for whole table. UTF-8 is default and is not necessary to define.
+  charset: CharsetType.utf8;
+
   // The ! operator is needed for primary key since it's never null 
   @Field({
     type: FieldType.INT,
@@ -42,6 +46,10 @@ class UserModel extends BaseModel {
 
   @Field({ type: FieldType.STRING, length: 30 })
   password: string;
+
+  // Charset can be explicitly defined for each column.
+  @Field({ type: FieldType.STRING, length: 60, charset: CharsetType.utf8mb4 })
+  namespace: string;
 
   // Index can be created [index/unique/spatial/fulltext] for each field
   @Field({ type: FieldType.STRING, length: 30, unique: true })
@@ -307,3 +315,5 @@ Following types of an index are available
 | spatial       | false                                
 | fulltext      | true                                 
   
+#### Character sets
+list of valid character sets is based on https://dev.mysql.com/doc/refman/8.0/en/charset-charsets.html

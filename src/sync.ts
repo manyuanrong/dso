@@ -3,10 +3,7 @@ import { dso } from "../mod.ts";
 import { FieldType, Defaults } from "./field.ts";
 import { BaseModel } from "./model.ts";
 import { columnIndexesList, Index } from "./index.ts";
-import { replaceBackTick } from "../util.ts";
-import { SqliteClient } from "../SqliteClient.ts";
-import { PostgresClient } from "../PostgresClient.ts";
-import { MysqlClient } from "./MysqlClient.ts";
+import { charsetList } from "./charset.ts";
 
 export async function sync(
   client: MysqlClient | PostgresClient | SqliteClient,
@@ -62,6 +59,9 @@ export async function sync(
       }
 
       def += ` ${type}`;
+      if (field.charset) {
+        def += ` CHARACTER SET ${charsetList[field.charset]}`;
+      }
       if (field.notNull) def += " NOT NULL";
       if (field.default != null) {
         if (field.default === Defaults.NULL) {
@@ -107,6 +107,7 @@ export async function sync(
     defs += `, ${columnIndexesList[index.type]} (${index.columns.join(", ")})`;
   });
 
+<<<<<<< HEAD
   let sql;
 
   if (client instanceof MysqlClient) {
@@ -127,6 +128,17 @@ export async function sync(
       ");",
     ].join(" ");
   }
+=======
+  const sql = [
+    "CREATE TABLE IF NOT EXISTS",
+    model.modelName,
+    "(",
+    defs,
+    ")",
+    `ENGINE=InnoDB DEFAULT CHARSET=${charsetList[model.charset]};`,
+  ].join(" ");
+  console.log(sql);
+>>>>>>> master
 
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
 
