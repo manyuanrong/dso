@@ -126,19 +126,16 @@ export async function sync(
       defs,
       ");",
     ].join(" ");
-  //  console.log(sql);
   }
- // console.log(sql);
- if (client instanceof MysqlClient) {
-  MysqlClient.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
- }
+
+  dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
+
   let result;
   if (client instanceof MysqlClient) {
     result = await client.query(sql);
   } else {
     result = await client.query(replaceBackTick(sql));
   }
-  if (client instanceof MysqlClient) {
-  MysqlClient.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
-  }
+
+  dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
 }

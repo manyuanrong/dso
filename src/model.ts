@@ -1,7 +1,6 @@
 import { assert, Join, Order, Query, Where } from "../deps.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 import { Index, IndexType } from "./index.ts";
-import { replaceBackTick, rowsPostgres } from "../util.ts";
 import { Connection } from "../deps.ts";
 import { dso } from "./dso.ts";
 import { MysqlClient } from "./MysqlClient.ts";
@@ -34,7 +33,7 @@ export class BaseModel {
   created_at?: Date;
   updated_at?: Date;
 
-  constructor(public connection?: Connection| MysqlClient) {}
+  constructor(public connection?: Connection | MysqlClient) {}
 
   /** get model name */
   get modelName(): string {
@@ -168,11 +167,10 @@ export class BaseModel {
     let resultSqlite: any;
     let resultPostgres: any;
     let converted: ModelFields<this> | undefined;
-    
-      result = await this.query(this.optionsToQuery(options).limit(0, 1));
 
-      converted = this.convertModel(result[0]);
-    
+    result = await this.query(this.optionsToQuery(options).limit(0, 1));
+
+    converted = this.convertModel(result[0]);
 
     return converted;
   }
@@ -187,10 +185,8 @@ export class BaseModel {
     let deleteCounts: number | undefined;
     let resultPostgres: any;
 
-   
-      result = await this.execute(query);
-      deleteCounts = result.affectedRows;
-    
+    result = await this.execute(query);
+    deleteCounts = result.affectedRows;
 
     return deleteCounts ?? 0;
   }
@@ -216,13 +212,8 @@ export class BaseModel {
   async insert(fields: Partial<this>): Promise<number | undefined> {
     const query = this.builder().insert(this.convertObject(fields));
 
-    let result: any;
-    let idReturn: number;
-
-  
-      result = await this.execute(query);
-      idReturn = result.lastInsertId;
-    
+    let result: any = await this.execute(query);
+    let idReturn: number = result.lastInsertId;
 
     return idReturn;
   }
@@ -231,14 +222,8 @@ export class BaseModel {
   async insertRowsAffected(fields: Partial<this>): Promise<number | undefined> {
     const query = this.builder().insert(this.convertObject(fields));
 
-    let resultPostgres: any;
-    let result: any;
-
-    let updateCounts;
-
-      result = await this.execute(query);
-      updateCounts = result.affectedRows;
-    
+    let result: any = await this.execute(query);
+    let updateCounts = result.affectedRows;
 
     return updateCounts;
   }
@@ -261,15 +246,8 @@ export class BaseModel {
       .update(this.convertObject(data))
       .where(where ?? "");
 
-    let result: any;
-    let resultPostgres: any;
-
-    let updateCounts;
-
-   
-      result = await this.execute(query);
-      updateCounts = result.affectedRows;
-    
+    let result: any = await this.execute(query);
+    let updateCounts = result.affectedRows;
 
     return updateCounts;
   }
@@ -282,33 +260,6 @@ export class BaseModel {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
     const result = await this.connection?.query(sql);
-      dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
-    return result;
-  }
-
-  /**
-   * query custom
-   * @param query
-   */
-  async querySqlite(query: Query): Promise<any[]> {
-    const sql = query.build();
-    console.log(replaceBackTick(sql));
-    dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
-    const result: any = await this.connection?.query(replaceBackTick(sql));
-    
-    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
-    return result;
-  }
-
-  /**
-   * query custom
-   * @param query
-   */
-  async queryPostgres(query: Query): Promise<any[]> {
-    const sql = query.build();
-    dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
-    const result: any =  await this.connection?.query(replaceBackTick(sql))
-     
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
@@ -320,41 +271,7 @@ export class BaseModel {
   async execute(query: Query) {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
-    const result = await this.connection?.execute(sql)
-      
-
-
-    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
-    return result;
-  }
-
-  /**
-  * excute custom
-  * @param query
-  */
-  async executeQueryPostGres(query: Query) {
-    const sql = query.build();
-
-    dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
-
-    const result = await this.connection?.query(replaceBackTick(sql))
-     
-
-    dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
-    return result;
-  }
-
-  /**
-  * excute custom
-  * @param query
-  */
-  async executeQuerySqlite(query: Query) {
-    const sql = query.build();
-    console.log(replaceBackTick(sql));
-    dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
-
-    const result = await this.connection?.query(replaceBackTick(sql))
-     
+    const result = await this.connection?.execute(sql);
 
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
