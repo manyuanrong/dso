@@ -67,9 +67,11 @@ class CharsetsModel extends BaseModel {
   chineseName?: string;
 }
 
-const userModel = dso.define(UserModel);
-const topicModel = dso.define(TopicModel);
-const charsetsModel = dso.define(CharsetsModel);
+const client: MysqlClient = new MysqlClient();
+dso.showQueryLog = true;
+const userModel = client.define(UserModel);
+const topicModel = client.define(TopicModel);
+const charsetsModel = client.define(CharsetsModel);
 
 clientTest(async function testInsert() {
   assertEquals(
@@ -223,14 +225,14 @@ clientTest(async function testCharsetsFail() {
         { czechName: "独角兽", chineseName: "jednorožec" },
       ) as Promise<void>,
   );
-});
+}, client);
 
 clientTest(async function testCharsetsSuccess() {
   const id = await charsetsModel.insert(
     { czechName: "jednorožec", chineseName: "独角兽" },
   );
   assertEquals(id, 1);
-});
+}, client);
 
 clientTest(async function testTransactionFail() {
   let userId: number | undefined;

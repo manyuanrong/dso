@@ -2,6 +2,9 @@ import { assert, Join, Order, Query, Where } from "../deps.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 import { Index, IndexType } from "./index.ts";
 import { CharsetType } from "./charset.ts";
+import { dso } from "./dso.ts";
+import { Connection } from "../deps.ts";
+import { MysqlClient } from "./MysqlClient.ts";
 
 export interface QueryOptions {
   fields?: string[];
