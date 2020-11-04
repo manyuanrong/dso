@@ -41,7 +41,7 @@ export const dso = {
   /**
    * Sync model to database table
    * @param force set true, will drop table before create table
-   */
+   
   async sync(force: boolean = false): Promise<void> {
     if (_configClientReturn["mysql"]) {
       for (const model of _models) {
@@ -56,7 +56,7 @@ export const dso = {
         await sync(_clientSqlite, model, force);
       }
     }
-  },
+  },*/
 
   /**
    * MySQL Database client
@@ -86,12 +86,7 @@ export const dso = {
     return _configClientReturn;
   },
 
-  /**
-   * all models
-   */
-  get models() {
-    return _models;
-  },
+  
 
   /**
    * add model
@@ -106,7 +101,7 @@ export const dso = {
   /*
   * Transaction object selected for each driver 
   */
-  transaction: Transaction.transaction,
+  //transaction: Transaction.transaction,
 
   /**
    * connect to database mysql | postgres | Sqlite

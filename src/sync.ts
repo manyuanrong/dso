@@ -6,14 +6,15 @@ import { columnIndexesList, Index } from "./index.ts";
 import { replaceBackTick } from "../util.ts";
 import { SqliteClient } from "../SqliteClient.ts";
 import { PostgresClient } from "../PostgresClient.ts";
+import { MysqlClient } from "./MysqlClient.ts";
 
 export async function sync(
-  client: Client | PostgresClient | SqliteClient,
+  client: MysqlClient | PostgresClient | SqliteClient,
   model: BaseModel,
   force: boolean,
 ) {
   if (force) {
-    if (client instanceof Client) {
+    if (client instanceof MysqlClient) {
       await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
     } else {
       await client.query(`DROP TABLE IF EXISTS ${model.modelName}`);
@@ -29,7 +30,7 @@ export async function sync(
           type = `VARCHAR(${field.length || 255})`;
           break;
         case FieldType.INT:
-          if (client instanceof Client) {
+          if (client instanceof MysqlClient) {
             type = `INT(${field.length || 11})`;
           } else if (client instanceof SqliteClient) {
             type = `INTEGER `;
@@ -69,7 +70,7 @@ export async function sync(
           def += ` DEFAULT ${field.default}`;
         }
       }
-      if (client instanceof Client) {
+      if (client instanceof MysqlClient) {
         if (field.autoIncrement) def += " AUTO_INCREMENT";
       }
 
@@ -108,7 +109,7 @@ export async function sync(
 
   let sql;
 
-  if (client instanceof Client) {
+  if (client instanceof MysqlClient) {
     sql = [
       "CREATE TABLE IF NOT EXISTS",
       model.modelName,
@@ -125,17 +126,19 @@ export async function sync(
       defs,
       ");",
     ].join(" ");
-    console.log(sql);
+  //  console.log(sql);
   }
-  console.log(sql);
-
-  dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
+ // console.log(sql);
+ if (client instanceof MysqlClient) {
+  MysqlClient.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
+ }
   let result;
-  if (client instanceof Client) {
-    result = await client.execute(sql);
+  if (client instanceof MysqlClient) {
+    result = await client.query(sql);
   } else {
     result = await client.query(replaceBackTick(sql));
   }
-
-  dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
+  if (client instanceof MysqlClient) {
+  MysqlClient.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
+  }
 }

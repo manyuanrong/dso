@@ -1,11 +1,13 @@
 import { Connection } from "../deps.ts";
-import { dso } from "./dso.ts";
 import { BaseModel } from "./model.ts";
 import { PostgresClient } from "../PostgresClient.ts";
 import { SqliteClient } from "../SqliteClient.ts";
+import { dso } from "./dso.ts";
+import { MysqlClient } from "./MysqlClient.ts";
 
 export class Transaction {
   constructor(private _conn: Connection | PostgresClient | SqliteClient) {}
+  
   getModel<T extends BaseModel>(
     Model: { new (conn: Connection | PostgresClient | SqliteClient): T },
   ): T {
@@ -13,13 +15,13 @@ export class Transaction {
     return model;
   }
 
-  static async transaction<T>(
+  /**static async transaction<T>(
     processor: (transaction: Transaction) => Promise<T>,
     driverType: string,
   ): Promise<T> {
     if (driverType.toUpperCase() == "MYSQL") {
       return (
-        await dso.client.transaction(async (conn) => {
+        await new MysqlClient().client.transaction(async (conn) => {
           const trans = new Transaction(conn);
           return await processor(trans);
         })
@@ -39,5 +41,5 @@ export class Transaction {
         })
       ) as T;
     }
-  }
+  }*/
 }
