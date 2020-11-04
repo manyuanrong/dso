@@ -1,19 +1,8 @@
 import { MysqlClient } from "./MysqlClient.ts";
 
-export enum ClientType {
-  MYSQL = "MYSQL",
-  POSTGRESS = "POSTGRESS",
-  SQLITE = "SQLITE",
-}
-
 export interface DsoConnection {
   query<T = any>(sql: string, params?: any[]): Promise<T>;
   execute<T = any>(sql: string, params?: any[]): Promise<T>;
-}
-
-/** Transaction processor */
-export interface TransactionProcessor<T> {
-  (connection: MysqlClient): Promise<T>;
 }
 
 export interface PoolInfo {

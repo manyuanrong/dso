@@ -1,23 +1,20 @@
 import { dso } from "./mod.ts";
 import "./test/model.ts";
-import { ClientConfig } from "./deps.ts";
-import { MysqlClient } from "./src/MysqlClient.ts";
 
-const config: ClientConfig = {
+const config = {
   hostname: "127.0.0.1",
   port: 3306,
-  poolSize: 6,
-  debug: true,
+  poolSize: 3,
+  debug: false,
   username: "root",
   password: "",
-  db: "test_orm",
+  db: "",
 };
-
 export async function clientTest(fn: Function) {
   Deno.test({
     name: fn.name,
     fn: async () => {
-      await dso.mysqlClient.connect(config);
+      await dso.mysqlClient.connect({ ...config, db: "test_orm" });
       await dso.mysqlClient.sync(true);
       await fn();
       dso.mysqlClient.close();
