@@ -13,24 +13,23 @@ const config: ClientConfig = {
   db: "test_orm",
 };
 
-export async function clientTest(fn: Function, clientiele: MysqlClient) {
+export async function clientTest(fn: Function) {
   Deno.test({
     name: fn.name,
     fn: async () => {
-      await clientiele.connect(config);
-      await clientiele.sync(true);
+      await dso.mysqlClient.connect(config);
+      await dso.mysqlClient.sync(true);
       await fn();
-      clientiele.close();
+      dso.mysqlClient.close();
     },
   });
 }
 
-const client: MysqlClient = new MysqlClient();
 async function main() {
-  await client.connect(config);
-  await client.query(`CREATE DATABASE IF NOT EXISTS test_orm`);
-  await client.query(`USE test_orm`);
-  await client.close();
+  await dso.mysqlClient.connect(config);
+  await dso.mysqlClient.query(`CREATE DATABASE IF NOT EXISTS test_orm`);
+  await dso.mysqlClient.query(`USE test_orm`);
+  await dso.mysqlClient.close();
 }
 
 await main();

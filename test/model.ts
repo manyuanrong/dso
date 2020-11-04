@@ -1,7 +1,6 @@
 import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
 import {
   BaseModel,
-  MysqlClient,
   Field,
   FieldType,
   CharsetType,
@@ -67,11 +66,10 @@ class CharsetsModel extends BaseModel {
   chineseName?: string;
 }
 
-const client: MysqlClient = new MysqlClient();
 dso.showQueryLog = true;
-const userModel = client.define(UserModel);
-const topicModel = client.define(TopicModel);
-const charsetsModel = client.define(CharsetsModel);
+const userModel = dso.mysqlClient.define(UserModel);
+const topicModel = dso.mysqlClient.define(TopicModel);
+const charsetsModel = dso.mysqlClient.define(CharsetsModel);
 
 clientTest(async function testInsert() {
   assertEquals(
@@ -98,7 +96,7 @@ clientTest(async function testInsert() {
     }),
     3,
   );
-}, client);
+});
 
 clientTest(async function testInsertRowsAffected() {
   assertEquals(
@@ -125,7 +123,7 @@ clientTest(async function testInsertRowsAffected() {
     }),
     1,
   );
-}, client);
+});
 
 clientTest(async function testUpdate() {
   const id: number | undefined = await userModel.insert(
@@ -148,7 +146,7 @@ clientTest(async function testUpdate() {
     password: "BAR",
     phoneNumber: "08135539123",
   });
-}, client);
+});
 
 clientTest(async function testFindOneByWhere() {
   await userModel.insert({ nickName: "foo", phoneNumber: "08135539123" });
@@ -178,7 +176,7 @@ clientTest(async function testFindOneByWhere() {
     title: "foo",
     userId: 1,
   });
-}, client);
+});
 
 clientTest(async function testDelete() {
   await userModel.insert({ nickName: "foo" });
@@ -189,7 +187,7 @@ clientTest(async function testDelete() {
   );
 
   assertEquals(count, 2);
-}, client);
+});
 
 clientTest(async function testFindOneByOptions() {
   await userModel.insert({ nickName: "foo" });
@@ -216,7 +214,7 @@ clientTest(async function testFindOneByOptions() {
     updated_at: topic?.updated_at,
     created_at: topic?.created_at,
   });
-}, client);
+});
 
 clientTest(async function testCharsetsFail() {
   await assertThrowsAsync(
@@ -225,20 +223,20 @@ clientTest(async function testCharsetsFail() {
         { czechName: "独角兽", chineseName: "jednorožec" },
       ) as Promise<void>,
   );
-}, client);
+});
 
 clientTest(async function testCharsetsSuccess() {
   const id = await charsetsModel.insert(
     { czechName: "jednorožec", chineseName: "独角兽" },
   );
   assertEquals(id, 1);
-}, client);
+});
 
 clientTest(async function testTransactionFail() {
   let userId: number | undefined;
   let topicId: number | undefined;
   await assertThrowsAsync(async () => {
-    await client.transaction<boolean>(async (trans) => {
+    await dso.mysqlClient.transaction<boolean>(async (trans) => {
       const userModel = trans.getModel(UserModel);
       const topicModel = trans.getModel(TopicModel);
       userId = await userModel.insert({ nickName: "foo", password: "bar" });
@@ -247,18 +245,18 @@ clientTest(async function testTransactionFail() {
       assert(!!user);
       await userModel.query(new Query().table("notexists").select("*"));
       return true;
-    }, client);
+    }, dso.mysqlClient);
   });
   const user = await userModel.findById(userId!);
   const topic = await topicModel.findById(topicId!);
   assert(!user);
   assert(!topic);
-}, client);
+});
 
 clientTest(async function testTransactionSuccess() {
   let topicId: number | undefined;
   let userId: number | undefined;
-  const result = await client.transaction<boolean>(async (trans) => {
+  const result = await dso.mysqlClient.transaction<boolean>(async (trans) => {
     const userModel = trans.getModel(UserModel);
     const topicModel = trans.getModel(TopicModel);
     userId = await userModel.insert({ nickName: "foo", password: "bar" });
@@ -266,10 +264,10 @@ clientTest(async function testTransactionSuccess() {
     let user = await userModel.findById(userId!);
     assert(!!user);
     return true;
-  }, client);
+  }, dso.mysqlClient);
   const user = await userModel.findById(userId!);
   const topic = await userModel.findById(topicId!);
   assertEquals(result, true);
   assert(!!topic);
   assert(!!user);
-}, client);
+});

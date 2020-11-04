@@ -4,23 +4,15 @@ import { FieldType, Defaults } from "./field.ts";
 import { BaseModel } from "./model.ts";
 import { columnIndexesList, Index } from "./index.ts";
 import { charsetList } from "./charset.ts";
-import { replaceBackTick } from "../util.ts";
-import { SqliteClient } from "../SqliteClient.ts";
-import { PostgresClient } from "../PostgresClient.ts";
 import { MysqlClient } from "./MysqlClient.ts";
 
-
 export async function sync(
-  client: MysqlClient | PostgresClient | SqliteClient,
+  client: MysqlClient,
   model: BaseModel,
   force: boolean,
 ) {
   if (force) {
-    if (client instanceof MysqlClient) {
-      await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
-    } else {
-      await client.query(`DROP TABLE IF EXISTS ${model.modelName}`);
-    }
+    await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
   }
 
   let defs = model.modelFields
@@ -34,8 +26,6 @@ export async function sync(
         case FieldType.INT:
           if (client instanceof MysqlClient) {
             type = `INT(${field.length || 11})`;
-          } else if (client instanceof SqliteClient) {
-            type = `INTEGER `;
           } else {
             if (field.autoIncrement) {
               type = `SERIAL`;
@@ -136,11 +126,8 @@ export async function sync(
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
 
   let result;
-  if (client instanceof MysqlClient) {
-    result = await client.query(sql);
-  } else {
-    result = await client.query(replaceBackTick(sql));
-  }
+
+  result = await client.query(sql);
 
   dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
 }
