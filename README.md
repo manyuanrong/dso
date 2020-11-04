@@ -123,7 +123,8 @@ Since this library needs to use Typescript Decorators and other features, a cust
     "allowJs": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "esnext"
+    "module": "esnext",
+    "isolatedModules": false
   }
 }
 ```
