@@ -6,7 +6,9 @@
 ![(Deno)](https://img.shields.io/badge/deno-1.0.0-green.svg)
 
 
-`dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql), [Deno-Postgres](https://github.com/deno-postgres/deno-postgres) and [Deno-Sqlite](https://github.com/dyedgreen/deno-sqlite).
+`dso` is a simple ORM Library based on [deno_mysql](https://github.com/manyuanrong/deno_mysql)
+
+Other databases to be supported include - [Deno-Postgres](https://github.com/deno-postgres/deno-postgres) and [Deno-Sqlite](https://github.com/dyedgreen/deno-sqlite).
 
 
 ### Example
@@ -60,16 +62,7 @@ class UserModel extends BaseModel {
   public myUniqueIndex!: Index;
 }
 
-const userModel = dso.define(UserModel);
-/*
-
-export interface Config extends Base {
-  type: type: string; // MySQl|Postgres|Sqlite
-  clientConfig?: ClientConfig | object; MySQL client Config or an object
-  client?: Client | PostgresClient | SqliteClient;
-}
-
-*/
+const userModel = dso.mysqlClient.define(UserModel);
 
 const config: ClientConfig = {
   hostname: "127.0.0.1",
@@ -81,35 +74,13 @@ const config: ClientConfig = {
   db: "",
 };
 
-const mysqlConfig = {
-  type: "MYSQL",
-  clientConfig: { ...config, db: "dbname" },
-};
 
-const configPostgres = {
-  user: "username",
-  database: "dbname",
-  hostname: "127.0.0.1",
-  password: "",
-  port: 5432,
-};
-
-const postgresConfig = {
-  type: "POSTGRES",
-  clientConfig: configPostgres,
-};
-
-const sqliteConfig = {
-  type: "SQLITE",
-  clientConfig: { database: "test.db" },
-};
 
 
 async function main() {
   // The database must be created before linking with the configuration object
-  await dso.connect(mysqlConfig);
-  await dso.connect(postgresConfig);
-  await dso.connect(sqliteConfig);
+  await dso.mysqlClient.connect(mysqlConfig);
+  
 
   /*  
     When installing or initializing a database,
@@ -121,7 +92,7 @@ async function main() {
     == WARNING! ==
     Using true as the parameter will reset your whole database! Use with caution.
   */
-  await dso.sync(false);
+  await dso.mysqlClient.sync(false);
 
   // You can add records using insert method
   const insertId = await userModel.insert({
@@ -193,13 +164,13 @@ Set whether query debugging information is displayed
 dso.showQueryLog = true;
 ```
 
-#### dso.connect
+#### dso.mysqlClient.connect
 
 You need to use this method to link to the database before you can manipulate the database
 See the approprite configuration object specified earlier. Example below is for MySQL
 
 ```ts
-await dso.connect({
+await dso.mysqlClient.connect({
   hostname: "127.0.0.1", // database hostname
   port: 3306, // database port
   username: "root", // database username
@@ -208,7 +179,7 @@ await dso.connect({
 });
 ```
 
-#### dso.define()
+#### dso.mysqlClient.define()
 
 Add an annotated `Model` instance and return the instance.
 
@@ -248,7 +219,7 @@ export default const userModel = dso.define(UserModel);
 // userModel.delete(...)
 ```
 
-#### dso.sync
+#### dso.mysqlClient.sync
 
 When installing or initializing a database, you can use sync to synchronize the database model to the database.
 
@@ -259,22 +230,21 @@ const force = true; // force
 await dso.sync(force);
 ```
 
-#### dso.transaction<T>(processor: (transaction: Transaction) => Promise<T>): Promise<T>
+#### dso.mysqlClient.transaction<T>(processor: (transaction: Transaction) => Promise<T>): Promise<T>
 
 Create and start a transaction.
 
-New `Model` instances must be obtained through `getModel(Model)`. Otherwise, it will not be controlled by transactions. Transaction takes a second `driverType:string` parameter which can be
-"MYSQL"| "POSTGRES" | "SQLITE" (ignores capitalization). 
+New `Model` instances must be obtained through `getModel(Model)`. Otherwise, it will not be controlled by transactions.
 
 ```ts
-const result = await dso.transaction<boolean>(async trans => {
+const result = await dso.mysqlClient.transaction<boolean>(async trans => {
   const userModel = trans.getModel(UserModel);
   const topicModel = trans.getModel(TopicModel);
 
   userId = await userModel.insert({ nickName: "foo", password: "bar", phoneNumber: "08135539123" });
   topicId = await topicModel.insert({ title: "zoo", userId });
   return true;
-}, "MYSQL");
+});
 ```
 
 ### Top Level Types

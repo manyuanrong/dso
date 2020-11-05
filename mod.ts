@@ -1,5 +1,6 @@
 export {
   Client,
+  ClientConfig,
   Join,
   Order,
   Query,
