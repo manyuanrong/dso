@@ -3,6 +3,7 @@
     "allowJs": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "esnext"
+    "module": "esnext",
+    "isolatedModules": false
   }
 }
