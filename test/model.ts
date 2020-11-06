@@ -1,9 +1,9 @@
 import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
 import {
   BaseModel,
+  CharsetType,
   Field,
   FieldType,
-  CharsetType,
   Join,
   Model,
   Query,
@@ -67,9 +67,9 @@ class CharsetsModel extends BaseModel {
 }
 
 dso.showQueryLog = true;
-const userModel = dso.mysqlClient.define(UserModel);
-const topicModel = dso.mysqlClient.define(TopicModel);
-const charsetsModel = dso.mysqlClient.define(CharsetsModel);
+const userModel = dso.define(UserModel);
+const topicModel = dso.define(TopicModel);
+const charsetsModel = dso.define(CharsetsModel);
 
 clientTest(async function testInsert() {
   assertEquals(
@@ -236,7 +236,7 @@ clientTest(async function testTransactionFail() {
   let userId: number | undefined;
   let topicId: number | undefined;
   await assertThrowsAsync(async () => {
-    await dso.mysqlClient.transaction<boolean>(async (trans) => {
+    await dso.client.transaction<boolean>(async (trans) => {
       const userModel = trans.getModel(UserModel);
       const topicModel = trans.getModel(TopicModel);
       userId = await userModel.insert({ nickName: "foo", password: "bar" });
@@ -245,7 +245,7 @@ clientTest(async function testTransactionFail() {
       assert(!!user);
       await userModel.query(new Query().table("notexists").select("*"));
       return true;
-    }, dso.mysqlClient);
+    }, dso.client);
   });
   const user = await userModel.findById(userId!);
   const topic = await topicModel.findById(topicId!);
@@ -256,7 +256,7 @@ clientTest(async function testTransactionFail() {
 clientTest(async function testTransactionSuccess() {
   let topicId: number | undefined;
   let userId: number | undefined;
-  const result = await dso.mysqlClient.transaction<boolean>(async (trans) => {
+  const result = await dso.client.transaction<boolean>(async (trans) => {
     const userModel = trans.getModel(UserModel);
     const topicModel = trans.getModel(TopicModel);
     userId = await userModel.insert({ nickName: "foo", password: "bar" });
@@ -264,7 +264,7 @@ clientTest(async function testTransactionSuccess() {
     let user = await userModel.findById(userId!);
     assert(!!user);
     return true;
-  }, dso.mysqlClient);
+  }, dso.client);
   const user = await userModel.findById(userId!);
   const topic = await userModel.findById(topicId!);
   assertEquals(result, true);

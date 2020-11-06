@@ -1,13 +1,14 @@
 import { assert, Client } from "../deps.ts";
 import { dso } from "../mod.ts";
-import { FieldType, Defaults } from "./field.ts";
-import { BaseModel } from "./model.ts";
-import { columnIndexesList, Index } from "./index.ts";
 import { charsetList } from "./charset.ts";
-import { MysqlClient } from "./MysqlClient.ts";
+import { DsoClient } from "./drivers/base.ts";
+import { Defaults, FieldType } from "./field.ts";
+import { columnIndexesList, Index } from "./index.ts";
+import { BaseModel } from "./model.ts";
+import { DriverName } from "./types.ts";
 
 export async function sync(
-  client: MysqlClient,
+  client: DsoClient,
   model: BaseModel,
   force: boolean,
 ) {
@@ -24,7 +25,7 @@ export async function sync(
           type = `VARCHAR(${field.length || 255})`;
           break;
         case FieldType.INT:
-          if (client instanceof MysqlClient) {
+          if (client.driverName === DriverName.MYSQL) {
             type = `INT(${field.length || 11})`;
           } else {
             if (field.autoIncrement) {
@@ -65,7 +66,7 @@ export async function sync(
           def += ` DEFAULT ${field.default}`;
         }
       }
-      if (client instanceof MysqlClient) {
+      if (client.driverName === DriverName.MYSQL) {
         if (field.autoIncrement) def += " AUTO_INCREMENT";
       }
 
@@ -104,7 +105,7 @@ export async function sync(
 
   let sql;
 
-  if (client instanceof MysqlClient) {
+  if (client.driverName === DriverName.MYSQL) {
     sql = [
       "CREATE TABLE IF NOT EXISTS",
       model.modelName,

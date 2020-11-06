@@ -1,10 +1,9 @@
 import { assert, Join, Order, Query, Where } from "../deps.ts";
+import { CharsetType } from "./charset.ts";
+import { DsoConnection } from "./drivers/base.ts";
+import { dso } from "./dso.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 import { Index, IndexType } from "./index.ts";
-import { CharsetType } from "./charset.ts";
-import { dso } from "./dso.ts";
-import { Connection } from "../deps.ts";
-import { MysqlClient } from "./MysqlClient.ts";
 
 export interface QueryOptions {
   fields?: string[];
@@ -35,7 +34,7 @@ export class BaseModel {
   updated_at?: Date;
   charset: CharsetType = CharsetType.utf8;
 
-  constructor(public connection?: Connection | MysqlClient) {}
+  constructor(public connection?: DsoConnection) {}
 
   /** get model name */
   get modelName(): string {
@@ -166,8 +165,6 @@ export class BaseModel {
       };
     }
     let result;
-    let resultSqlite: any;
-    let resultPostgres: any;
     let converted: ModelFields<this> | undefined;
 
     result = await this.query(this.optionsToQuery(options).limit(0, 1));
@@ -261,7 +258,11 @@ export class BaseModel {
   async query(query: Query): Promise<any[]> {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
-    const result = await this.connection?.query(sql);
+
+    const result = this.connection
+      ? await this.connection?.query(sql)
+      : await dso.client.useConnection((conn) => conn.query(sql));
+
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
@@ -273,7 +274,10 @@ export class BaseModel {
   async execute(query: Query) {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
-    const result = await this.connection?.execute(sql);
+
+    const result = this.connection
+      ? await this.connection?.execute(sql)
+      : await dso.client.useConnection((conn) => conn.execute(sql));
 
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
