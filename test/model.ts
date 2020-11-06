@@ -1,16 +1,18 @@
 import { assert, assertEquals, assertThrowsAsync } from "../deps.ts";
 import {
   BaseModel,
-  dso,
+  CharsetType,
   Field,
   FieldType,
-  CharsetType,
   Join,
   Model,
   Query,
   Where,
 } from "../mod.ts";
+import { dso } from "../src/dso.ts";
 import { clientTest } from "../test.ts";
+
+/** deno test --allow-net  --allow-read --allow-write -c tsconfig.json */
 
 @Model("users")
 class UserModel extends BaseModel {
@@ -64,6 +66,7 @@ class CharsetsModel extends BaseModel {
   chineseName?: string;
 }
 
+dso.showQueryLog = true;
 const userModel = dso.define(UserModel);
 const topicModel = dso.define(TopicModel);
 const charsetsModel = dso.define(CharsetsModel);
@@ -84,6 +87,41 @@ clientTest(async function testInsert() {
       phoneNumber: "08135539124",
     }),
     2,
+  );
+  assertEquals(
+    await userModel.insert({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135536124",
+    }),
+    3,
+  );
+});
+
+clientTest(async function testInsertRowsAffected() {
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539123",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135539124",
+    }),
+    1,
+  );
+  assertEquals(
+    await userModel.insertRowsAffected({
+      nickName: "foo",
+      password: "bar",
+      phoneNumber: "08135536124",
+    }),
+    1,
   );
 });
 
@@ -198,16 +236,16 @@ clientTest(async function testTransactionFail() {
   let userId: number | undefined;
   let topicId: number | undefined;
   await assertThrowsAsync(async () => {
-    await dso.transaction<boolean>(async (trans) => {
+    await dso.client.transaction<boolean>(async (trans) => {
       const userModel = trans.getModel(UserModel);
       const topicModel = trans.getModel(TopicModel);
       userId = await userModel.insert({ nickName: "foo", password: "bar" });
       topicId = await topicModel.insert({ title: "zoo", userId });
       let user = await userModel.findById(userId!);
       assert(!!user);
-      await userModel.query(new Query().table("notexixts").select("*"));
+      await userModel.query(new Query().table("notexists").select("*"));
       return true;
-    });
+    }, dso.client);
   });
   const user = await userModel.findById(userId!);
   const topic = await topicModel.findById(topicId!);
@@ -218,7 +256,7 @@ clientTest(async function testTransactionFail() {
 clientTest(async function testTransactionSuccess() {
   let topicId: number | undefined;
   let userId: number | undefined;
-  const result = await dso.transaction<boolean>(async (trans) => {
+  const result = await dso.client.transaction<boolean>(async (trans) => {
     const userModel = trans.getModel(UserModel);
     const topicModel = trans.getModel(TopicModel);
     userId = await userModel.insert({ nickName: "foo", password: "bar" });
@@ -226,7 +264,7 @@ clientTest(async function testTransactionSuccess() {
     let user = await userModel.findById(userId!);
     assert(!!user);
     return true;
-  });
+  }, dso.client);
   const user = await userModel.findById(userId!);
   const topic = await userModel.findById(topicId!);
   assertEquals(result, true);

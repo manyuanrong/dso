@@ -1,11 +1,17 @@
 import { assert, Client } from "../deps.ts";
 import { dso } from "../mod.ts";
-import { FieldType, Defaults } from "./field.ts";
-import { BaseModel } from "./model.ts";
-import { columnIndexesList, Index } from "./index.ts";
 import { charsetList } from "./charset.ts";
+import { DsoClient } from "./drivers/base.ts";
+import { Defaults, FieldType } from "./field.ts";
+import { columnIndexesList, Index } from "./index.ts";
+import { BaseModel } from "./model.ts";
+import { DriverName } from "./types.ts";
 
-export async function sync(client: Client, model: BaseModel, force: boolean) {
+export async function sync(
+  client: DsoClient,
+  model: BaseModel,
+  force: boolean,
+) {
   if (force) {
     await client.execute(`DROP TABLE IF EXISTS ${model.modelName}`);
   }
@@ -19,7 +25,15 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           type = `VARCHAR(${field.length || 255})`;
           break;
         case FieldType.INT:
-          type = `INT(${field.length || 11})`;
+          if (client.driverName === DriverName.MYSQL) {
+            type = `INT(${field.length || 11})`;
+          } else {
+            if (field.autoIncrement) {
+              type = `SERIAL`;
+            } else {
+              type = `INT`;
+            }
+          }
           break;
         case FieldType.DATE:
           type = `TIMESTAMP`;
@@ -39,6 +53,7 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           break;
         }
       }
+
       def += ` ${type}`;
       if (field.charset) {
         def += ` CHARACTER SET ${charsetList[field.charset]}`;
@@ -51,13 +66,21 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
           def += ` DEFAULT ${field.default}`;
         }
       }
-      if (field.autoIncrement) def += " AUTO_INCREMENT";
+      if (client.driverName === DriverName.MYSQL) {
+        if (field.autoIncrement) def += " AUTO_INCREMENT";
+      }
+
       if (field.autoUpdate) {
         assert(
           field.type === FieldType.DATE,
           "AutoUpdate only support Date field",
         );
-        def += ` ON UPDATE CURRENT_TIMESTAMP()`;
+
+        if (client instanceof Client) {
+          def += ` ON UPDATE CURRENT_TIMESTAMP()`;
+        } else {
+          // not yet supported def +=  ON UPDATE CURRENT_TIMESTAMP();
+        }
       }
       return def;
     })
@@ -80,17 +103,32 @@ export async function sync(client: Client, model: BaseModel, force: boolean) {
     defs += `, ${columnIndexesList[index.type]} (${index.columns.join(", ")})`;
   });
 
-  const sql = [
-    "CREATE TABLE IF NOT EXISTS",
-    model.modelName,
-    "(",
-    defs,
-    ")",
-    `ENGINE=InnoDB DEFAULT CHARSET=${charsetList[model.charset]};`,
-  ].join(" ");
-  console.log(sql);
+  let sql;
+
+  if (client.driverName === DriverName.MYSQL) {
+    sql = [
+      "CREATE TABLE IF NOT EXISTS",
+      model.modelName,
+      "(",
+      defs,
+      ")",
+      `ENGINE=InnoDB DEFAULT CHARSET=${charsetList[model.charset]};`,
+    ].join(" ");
+  } else {
+    sql = [
+      "CREATE TABLE IF NOT EXISTS",
+      model.modelName,
+      "(",
+      defs,
+      ");",
+    ].join(" ");
+  }
 
   dso.showQueryLog && console.log(`\n[ DSO:SYNC ]\nSQL:\t ${sql}\n`);
-  const result = await client.execute(sql);
+
+  let result;
+
+  result = await client.query(sql);
+
   dso.showQueryLog && console.log(`REUSLT:\t`, result, `\n`);
 }

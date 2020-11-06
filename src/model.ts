@@ -1,8 +1,9 @@
-import { assert, Connection, Join, Order, Query, Where } from "../deps.ts";
+import { assert, Join, Order, Query, Where } from "../deps.ts";
+import { CharsetType } from "./charset.ts";
+import { DsoConnection } from "./drivers/base.ts";
 import { dso } from "./dso.ts";
 import { Defaults, FieldOptions, FieldType } from "./field.ts";
 import { Index, IndexType } from "./index.ts";
-import { CharsetType } from "./charset.ts";
 
 export interface QueryOptions {
   fields?: string[];
@@ -33,7 +34,7 @@ export class BaseModel {
   updated_at?: Date;
   charset: CharsetType = CharsetType.utf8;
 
-  constructor(public connection?: Connection) {}
+  constructor(public connection?: DsoConnection) {}
 
   /** get model name */
   get modelName(): string {
@@ -163,8 +164,14 @@ export class BaseModel {
         where: options,
       };
     }
-    const result = await this.query(this.optionsToQuery(options).limit(0, 1));
-    return this.convertModel(result[0]);
+    let result;
+    let converted: ModelFields<this> | undefined;
+
+    result = await this.query(this.optionsToQuery(options).limit(0, 1));
+
+    converted = this.convertModel(result[0]);
+
+    return converted;
   }
 
   /**
@@ -172,12 +179,15 @@ export class BaseModel {
    * @param where
    */
   async delete(where: Where): Promise<number> {
-    const result = await this.execute(
-      this.builder()
-        .delete()
-        .where(where),
-    );
-    return result.affectedRows ?? 0;
+    const query = this.builder().delete().where(where);
+    let result: any;
+    let deleteCounts: number | undefined;
+    let resultPostgres: any;
+
+    result = await this.execute(query);
+    deleteCounts = result.affectedRows;
+
+    return deleteCounts ?? 0;
   }
 
   /** find all records by given conditions */
@@ -200,8 +210,21 @@ export class BaseModel {
   /** insert record */
   async insert(fields: Partial<this>): Promise<number | undefined> {
     const query = this.builder().insert(this.convertObject(fields));
-    const result = await this.execute(query);
-    return result.lastInsertId;
+
+    let result: any = await this.execute(query);
+    let idReturn: number = result.lastInsertId;
+
+    return idReturn;
+  }
+
+  /** insert record */
+  async insertRowsAffected(fields: Partial<this>): Promise<number | undefined> {
+    const query = this.builder().insert(this.convertObject(fields));
+
+    let result: any = await this.execute(query);
+    let updateCounts = result.affectedRows;
+
+    return updateCounts;
   }
 
   /** update records by given conditions */
@@ -222,8 +245,10 @@ export class BaseModel {
       .update(this.convertObject(data))
       .where(where ?? "");
 
-    const result = await this.execute(query);
-    return result.affectedRows;
+    let result: any = await this.execute(query);
+    let updateCounts = result.affectedRows;
+
+    return updateCounts;
   }
 
   /**
@@ -233,9 +258,11 @@ export class BaseModel {
   async query(query: Query): Promise<any[]> {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:QUERY ]\nSQL:\t ${sql}\n`);
+
     const result = this.connection
-      ? await this.connection.query(sql)
-      : await dso.client.query(sql);
+      ? await this.connection?.query(sql)
+      : await dso.client.useConnection((conn) => conn.query(sql));
+
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }
@@ -247,9 +274,11 @@ export class BaseModel {
   async execute(query: Query) {
     const sql = query.build();
     dso.showQueryLog && console.log(`\n[ DSO:EXECUTE ]\nSQL:\t ${sql}\n`);
+
     const result = this.connection
-      ? await this.connection.execute(sql)
-      : await dso.client.execute(sql);
+      ? await this.connection?.execute(sql)
+      : await dso.client.useConnection((conn) => conn.execute(sql));
+
     dso.showQueryLog && console.log(`RESULT:\t`, result, `\n`);
     return result;
   }

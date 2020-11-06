@@ -1,45 +1,30 @@
-import { Client, ClientConfig } from "../deps.ts";
+import { DsoClient } from "./drivers/base.ts";
+import { MysqlClient } from "./drivers/mysql.ts";
 import { BaseModel } from "./model.ts";
 import { sync } from "./sync.ts";
-import { Transaction } from "./transaction.ts";
+import { ConnectOptions } from "./types.ts";
 
 /** @ignore */
-let _client: Client;
+const models: BaseModel[] = [];
 
 /** @ignore */
-let _models: BaseModel[] = [];
+let client: DsoClient;
 
 /**
- * Global dso instance
+ * Global dso instance containing all clients
  */
 export const dso = {
   /**
-   * set true will show exucte/query sql
+   * set true will show execute/query sql
    */
   showQueryLog: false,
 
-  /**
-   * Sync model to database table
-   * @param force set true, will drop table before create table
-   */
-  async sync(force: boolean = false): Promise<void> {
-    for (const model of _models) {
-      await sync(_client, model, force);
-    }
+  get models(): BaseModel[] {
+    return models;
   },
 
-  /**
-   * Database client
-   */
-  get client(): Client {
-    return _client;
-  },
-
-  /**
-   * all models
-   */
-  get models() {
-    return _models;
+  get client(): DsoClient {
+    return client;
   },
 
   /**
@@ -48,27 +33,31 @@ export const dso = {
    */
   define<T extends BaseModel>(ModelClass: { new (): T }): T {
     const model = new ModelClass();
-    _models.push(model);
+    models.push(model);
     return model;
   },
 
-  transaction: Transaction.transaction,
+  /**
+   * Sync model to database table
+   * @param force set true, will drop table before create table
+   */
+  async sync(force: boolean = false): Promise<void> {
+    for (const model of models) {
+      await sync(client, model, force);
+    }
+  },
 
   /**
    * connect to database
    * @param config client config
    */
-  async connect(config: ClientConfig | Client) {
-    if (config instanceof Client) {
-      _client = config;
-    } else {
-      _client = new Client();
-      await _client.connect(config);
+  async connect(config: ConnectOptions) {
+    if (config instanceof DsoClient) {
+      client = config;
+    } else if (config.driver === "mysql") {
+      client = new MysqlClient();
+      await client.connect(config.options);
     }
-    return _client;
-  },
-
-  close(): void {
-    _client.close();
+    return client;
   },
 };

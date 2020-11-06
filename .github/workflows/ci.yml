@@ -19,6 +19,7 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: "true"
           MYSQL_ROOT_PASSWORD: ""
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3 
+      
 
     steps:
       - uses: actions/checkout@v2
@@ -31,4 +32,4 @@ jobs:
           deno fmt --check
       - name: Test
         run: |
-          deno test -c tsconfig.json --allow-net
+          deno test --allow-net -c tsconfig.json
