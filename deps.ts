@@ -2,7 +2,7 @@ export {
   assert,
   assertEquals,
   assertThrowsAsync,
-} from "https://deno.land/std@v0.51.0/testing/asserts.ts";
+} from "https://deno.land/std@0.51.0/testing/asserts.ts";
 export {
   Client,
   ClientConfig,
